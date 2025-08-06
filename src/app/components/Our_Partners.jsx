@@ -73,16 +73,16 @@ const OurPartners = () => {
             {[...partners, ...partners].map((partner, index) => (
               <div
                 key={`${partner.id}-${index}`}
-                className="flex-shrink-0 mx-4 sm:mx-6 px-4 py-3 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
+                className="flex-shrink-0 mx-3 px-2 py-1 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
               >
-                <div className="relative w-40 h-20 sm:w-60 sm:h-30 md:w-72 md:h-36">
+                <div className="relative w-32 h-16 sm:w-44 sm:h-22">
                   <Image
                     src={partner.img}
                     alt={partner.name}
                     fill
-                    className="object-contain p-1"
+                    className="object-contain p-0" // Removed padding here
                     quality={100}
-                    sizes="(max-width: 640px) 160px, (max-width: 768px) 240px, 288px"
+                    sizes="(max-width: 840px) 528px, (max-width: 868px) 576px"
                     onError={(e) => {
                       console.error(`Failed to load partner logo: ${partner.name}`);
                       e.target.parentElement.style.display = 'none';

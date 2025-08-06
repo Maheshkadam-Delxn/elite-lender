@@ -1,5 +1,7 @@
 {
-  "/api/banner/route": "app/api/banner/route.js",
   "/api/loan-types/route": "app/api/loan-types/route.js",
-  "/api/stats/route": "app/api/stats/route.js"
+  "/api/banner/route": "app/api/banner/route.js",
+  "/api/stats/route": "app/api/stats/route.js",
+  "/admin-dashboard/page": "app/admin-dashboard/page.js",
+  "/(main)/page": "app/(main)/page.js"
 }
