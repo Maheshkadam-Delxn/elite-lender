@@ -1,0 +1,384 @@
+{
+  "loanTypes": [
+    {
+      "id": "personal",
+      "title": "Personal Loan",
+      "subtitle": "Flexible financing for your needs",
+      "description": "Get quick access to funds for any personal need with our hassle-free personal loan options. We offer competitive interest rates and flexible repayment terms to suit your financial situation.",
+      "typesOfLoan": ["Personal Loan", "Debt Consolidation", "Medical Loan", "Wedding Loan", "Travel Loan"],
+      "features": [
+        {
+          "icon": "FaCheckCircle",
+          "text": "Quick approval process within 24 hours",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaStar",
+          "text": "Competitive interest rates starting from 10.99%",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaShieldAlt",
+          "text": "No collateral required",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaClock",
+          "text": "Flexible repayment terms up to 60 months",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaFileAlt",
+          "text": "Minimal documentation required",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaWallet",
+      "iconColor": "text-blue-600",
+      "bgColor": "bg-blue-50",
+      "order": 1,
+      "eligibility": [
+        "Age between 21-65 years",
+        "Minimum monthly income of ₹25,000",
+        "Good credit score (750+)",
+        "Stable employment for at least 2 years"
+      ],
+      "documents": [
+        "PAN Card",
+        "Aadhaar Card",
+        "Address Proof",
+        "Income Proof (Salary Slips/Bank Statements)",
+        "Employment Certificate"
+      ],
+      "loanAmount": {
+        "min": "₹50,000",
+        "max": "₹25,00,000"
+      },
+      "interestRate": {
+        "min": "10.99%",
+        "max": "24%"
+      },
+      "tenure": {
+        "min": "12 months",
+        "max": "60 months"
+      }
+    },
+    {
+      "id": "home",
+      "title": "Home Loan",
+      "subtitle": "Turn your dream home into reality",
+      "description": "Realize your dream of owning a home with our comprehensive home loan solutions. We offer attractive interest rates and long repayment tenures to make homeownership affordable.",
+      "typesOfLoan": ["Home Purchase Loan", "Home Construction Loan", "Home Extension Loan", "Home Improvement Loan", "Plot Loan"],
+      "features": [
+        {
+          "icon": "FaHome",
+          "text": "Up to 90% of property value",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaPercent",
+          "text": "Lowest interest rates starting from 8.50%",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaCalendarAlt",
+          "text": "Long repayment tenure up to 30 years",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaHandshake",
+          "text": "No prepayment charges after 3 years",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaTools",
+          "text": "Free property valuation and legal assistance",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaHome",
+      "iconColor": "text-green-600",
+      "bgColor": "bg-green-50",
+      "order": 2,
+      "eligibility": [
+        "Age between 21-65 years",
+        "Minimum monthly income of ₹35,000",
+        "Good credit score (750+)",
+        "Stable employment for at least 3 years"
+      ],
+      "documents": [
+        "PAN Card",
+        "Aadhaar Card",
+        "Address Proof",
+        "Income Proof",
+        "Property Documents",
+        "Builder/Developer Documents"
+      ],
+      "loanAmount": {
+        "min": "₹5,00,000",
+        "max": "₹10,00,00,000"
+      },
+      "interestRate": {
+        "min": "8.50%",
+        "max": "12%"
+      },
+      "tenure": {
+        "min": "5 years",
+        "max": "30 years"
+      }
+    },
+    {
+      "id": "business",
+      "title": "Business Loan",
+      "subtitle": "Fuel your business growth",
+      "description": "Accelerate your business growth with our flexible business loan options. Whether you need working capital, equipment financing, or expansion funds, we have the right solution for you.",
+      "typesOfLoan": ["Working Capital Loan", "Term Loan", "Equipment Financing", "Invoice Financing", "Trade Finance"],
+      "features": [
+        {
+          "icon": "FaRocket",
+          "text": "Quick disbursement within 48 hours",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaChartLine",
+          "text": "Flexible repayment based on cash flow",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaBuilding",
+          "text": "No collateral required for loans up to ₹50 lakhs",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaCalculator",
+          "text": "Competitive interest rates from 12%",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaHeadset",
+          "text": "Dedicated relationship manager",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaBriefcase",
+      "iconColor": "text-purple-600",
+      "bgColor": "bg-purple-50",
+      "order": 3,
+      "eligibility": [
+        "Business running for at least 3 years",
+        "Minimum annual turnover of ₹50 lakhs",
+        "Good credit history",
+        "Positive cash flow"
+      ],
+      "documents": [
+        "Business Registration Documents",
+        "PAN Card",
+        "GST Registration",
+        "Bank Statements (Last 12 months)",
+        "IT Returns (Last 3 years)",
+        "Business Plan"
+      ],
+      "loanAmount": {
+        "min": "₹10,00,000",
+        "max": "₹5,00,00,000"
+      },
+      "interestRate": {
+        "min": "12%",
+        "max": "18%"
+      },
+      "tenure": {
+        "min": "12 months",
+        "max": "84 months"
+      }
+    },
+    {
+      "id": "education",
+      "title": "Education Loan",
+      "subtitle": "Invest in your future",
+      "description": "Pursue your educational dreams without financial constraints. Our education loans cover tuition fees, accommodation, and other educational expenses for both domestic and international studies.",
+      "typesOfLoan": ["Domestic Education Loan", "International Education Loan", "Skill Development Loan", "Professional Course Loan"],
+      "features": [
+        {
+          "icon": "FaGraduationCap",
+          "text": "Covers 100% of course fees",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaGlobe",
+          "text": "Available for both domestic and international studies",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaClock",
+          "text": "Moratorium period during course duration",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaPercent",
+          "text": "Special rates for premier institutions",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaHandshake",
+          "text": "Co-borrower option available",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaGraduationCap",
+      "iconColor": "text-orange-600",
+      "bgColor": "bg-orange-50",
+      "order": 4,
+      "eligibility": [
+        "Age between 16-35 years",
+        "Admission to recognized institution",
+        "Good academic record",
+        "Co-borrower with stable income"
+      ],
+      "documents": [
+        "Admission Letter",
+        "Course Fee Structure",
+        "Academic Records",
+        "Co-borrower Income Proof",
+        "Identity and Address Proof"
+      ],
+      "loanAmount": {
+        "min": "₹1,00,000",
+        "max": "₹50,00,000"
+      },
+      "interestRate": {
+        "min": "8.50%",
+        "max": "12%"
+      },
+      "tenure": {
+        "min": "1 year",
+        "max": "15 years"
+      }
+    },
+    {
+      "id": "vehicle",
+      "title": "Vehicle Loan",
+      "subtitle": "Drive your dreams",
+      "description": "Get behind the wheel of your dream vehicle with our competitive vehicle loan options. We offer financing for cars, bikes, and commercial vehicles with quick approval and flexible terms.",
+      "typesOfLoan": ["Car Loan", "Two-Wheeler Loan", "Commercial Vehicle Loan", "Used Vehicle Loan"],
+      "features": [
+        {
+          "icon": "FaCar",
+          "text": "Up to 100% on-road price financing",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaBolt",
+          "text": "Instant approval and quick disbursement",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaPercent",
+          "text": "Competitive interest rates from 7.99%",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaCalendarAlt",
+          "text": "Flexible tenure up to 84 months",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaShieldAlt",
+          "text": "Comprehensive insurance coverage",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaCar",
+      "iconColor": "text-red-600",
+      "bgColor": "bg-red-50",
+      "order": 5,
+      "eligibility": [
+        "Age between 21-65 years",
+        "Minimum monthly income of ₹25,000",
+        "Good credit score",
+        "Valid driving license"
+      ],
+      "documents": [
+        "PAN Card",
+        "Aadhaar Card",
+        "Address Proof",
+        "Income Proof",
+        "Driving License",
+        "Vehicle Quotation"
+      ],
+      "loanAmount": {
+        "min": "₹50,000",
+        "max": "₹50,00,000"
+      },
+      "interestRate": {
+        "min": "7.99%",
+        "max": "15%"
+      },
+      "tenure": {
+        "min": "12 months",
+        "max": "84 months"
+      }
+    },
+    {
+      "id": "gold",
+      "title": "Gold Loan",
+      "subtitle": "Unlock the value of your gold",
+      "description": "Get instant cash against your gold ornaments and jewelry. Our gold loan facility offers quick disbursement, minimal documentation, and flexible repayment options.",
+      "typesOfLoan": ["Gold Jewelry Loan", "Gold Coin Loan", "Gold ETF Loan"],
+      "features": [
+        {
+          "icon": "FaCoins",
+          "text": "Up to 75% of gold value",
+          "color": "text-green-500"
+        },
+        {
+          "icon": "FaBolt",
+          "text": "Instant disbursement within 30 minutes",
+          "color": "text-blue-500"
+        },
+        {
+          "icon": "FaFileAlt",
+          "text": "Minimal documentation required",
+          "color": "text-purple-500"
+        },
+        {
+          "icon": "FaPercent",
+          "text": "Low interest rates from 7.50%",
+          "color": "text-orange-500"
+        },
+        {
+          "icon": "FaLock",
+          "text": "Secure storage in bank lockers",
+          "color": "text-indigo-500"
+        }
+      ],
+      "icon": "FaPiggyBank",
+      "iconColor": "text-yellow-600",
+      "bgColor": "bg-yellow-50",
+      "order": 6,
+      "eligibility": [
+        "Age between 18-75 years",
+        "Valid identity proof",
+        "Gold purity of 18K or above",
+        "No income proof required"
+      ],
+      "documents": [
+        "PAN Card",
+        "Aadhaar Card",
+        "Address Proof",
+        "Gold ornaments for valuation"
+      ],
+      "loanAmount": {
+        "min": "₹10,000",
+        "max": "₹50,00,000"
+      },
+      "interestRate": {
+        "min": "7.50%",
+        "max": "12%"
+      },
+      "tenure": {
+        "min": "3 months",
+        "max": "36 months"
+      }
+    }
+  ]
+} 

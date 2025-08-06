@@ -1,0 +1,1499 @@
+"use client";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  FaSignInAlt, 
+  FaSignOutAlt, 
+  FaEdit, 
+  FaPlus, 
+  FaTrash, 
+  FaSave,
+  FaTimes,
+  FaEye,
+  FaEyeSlash,
+  FaBars,
+  FaTimes as FaClose,
+  FaImage,
+  FaCreditCard,
+  FaChartBar,
+  FaChevronRight
+} from 'react-icons/fa';
+import { toast, Toaster } from 'react-hot-toast';
+
+const AdminDashboard = () => {
+  const router = useRouter();
+  
+  // Define default string IDs for loan types
+  const defaultStringIds = ["personal", "home", "business", "education", "vehicle", "gold"];
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [admin, setAdmin] = useState(null);
+  const [activeTab, setActiveTab] = useState('banner');
+  const [showLogin, setShowLogin] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Navigation items for sidebar
+  const navigationItems = [
+    {
+      id: 'banner',
+      name: 'Banner',
+      icon: <FaImage className="text-lg" />,
+      description: 'Manage homepage banner'
+    },
+    {
+      id: 'loan-types',
+      name: 'Loan Types',
+      icon: <FaCreditCard className="text-lg" />,
+      description: 'Manage loan products'
+    },
+    {
+      id: 'stats',
+      name: 'Statistics',
+      icon: <FaChartBar className="text-lg" />,
+      description: 'Manage site statistics'
+    }
+  ];
+
+  // Form states
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [bannerForm, setBannerForm] = useState({
+    title: '',
+    subtitle: '',
+    features: [{ icon: '', text: '', color: 'text-green-500' }]
+  });
+  const [loanTypeForm, setLoanTypeForm] = useState({
+    title: '',
+    subtitle: '',
+    description: '',
+    typesOfLoan: '',
+    features: [{ icon: 'FaCheckCircle', text: '', color: 'text-green-500' }],
+    icon: 'FaWallet',
+    iconColor: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    link: '',
+    order: 0,
+    eligibility: [''],
+    documents: [''],
+    loanAmount: { min: '', max: '' },
+    interestRate: { min: '', max: '' },
+    tenure: { min: '', max: '' }
+  });
+  const [statForm, setStatForm] = useState({
+    value: '',
+    label: '',
+    icon: '',
+    iconColor: 'text-blue-600',
+    order: 0
+  });
+
+  // Data states
+  const [bannerData, setBannerData] = useState(null);
+  const [loanTypes, setLoanTypes] = useState([]);
+  const [stats, setStats] = useState([]);
+  const [deletedDefaults, setDeletedDefaults] = useState(() => {
+    // Load deletedDefaults from localStorage on component mount
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('deletedDefaults');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+    return new Set();
+  });
+
+  // Helper function to update deletedDefaults and save to localStorage
+  const updateDeletedDefaults = (newSet) => {
+    setDeletedDefaults(newSet);
+    const serialized = JSON.stringify([...newSet]);
+    localStorage.setItem('deletedDefaults', serialized);
+    // Trigger event for home page to update
+    window.dispatchEvent(new CustomEvent('dataUpdated'));
+    
+    // Force a storage event for cross-tab communication
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'deletedDefaults',
+      newValue: serialized,
+      oldValue: localStorage.getItem('deletedDefaults')
+    }));
+  };
+
+  // Helper function to trigger home page updates
+  const triggerHomePageUpdate = () => {
+    // Trigger immediately for faster response
+    window.dispatchEvent(new CustomEvent('dataUpdated'));
+    
+    // Also trigger a storage event to ensure cross-tab communication
+    const currentDeletedDefaults = localStorage.getItem('deletedDefaults');
+    localStorage.setItem('deletedDefaults', currentDeletedDefaults || '[]');
+  };
+
+  // Check if admin is logged in
+  useEffect(() => {
+    const adminData = localStorage.getItem('adminData');
+    if (adminData) {
+      setAdmin(JSON.parse(adminData));
+      setIsLoggedIn(true);
+      setShowLogin(false);
+      fetchData();
+    }
+  }, []);
+
+  // Refetch data when deletedDefaults changes
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchData();
+    }
+  }, [deletedDefaults]);
+
+  const fetchData = async () => {
+    try {
+      // Fetch banner
+      const bannerRes = await fetch('/api/banner');
+      const bannerResult = await bannerRes.json();
+      if (bannerResult.success) {
+        setBannerData(bannerResult.data);
+      }
+
+                   // Fetch loan types
+      const loanTypesRes = await fetch('/api/loan-types');
+      const loanTypesResult = await loanTypesRes.json();
+      console.log('📊 Fetched loan types:', loanTypesResult);
+      if (loanTypesResult.success) {
+        // Filter out deleted default items
+        const filteredLoanTypes = loanTypesResult.data.filter(loan => {
+          // Check if this is a default item (has string _id)
+          if (defaultStringIds.includes(loan._id)) {
+            // This is a default item, check if it's been deleted
+            const defaultKey = `${loan.title}-${loan.icon}`;
+            return !deletedDefaults.has(defaultKey);
+          }
+          return true; // Keep database items
+        });
+        console.log('🔍 Filtered loan types:', filteredLoanTypes);
+        setLoanTypes(filteredLoanTypes);
+      }
+
+      // Fetch stats
+      const statsRes = await fetch('/api/stats');
+      const statsResult = await statsRes.json();
+      if (statsResult.success) {
+        setStats(statsResult.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Error fetching data');
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setAdmin(result.data);
+        setIsLoggedIn(true);
+        setShowLogin(false);
+        localStorage.setItem('adminData', JSON.stringify(result.data));
+        toast.success('Login successful!');
+        fetchData();
+      } else {
+        toast.error(result.error || 'Login failed');
+      }
+    } catch (error) {
+      toast.error('Login error');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminData');
+    setIsLoggedIn(false);
+    setAdmin(null);
+    setShowLogin(true);
+    toast.success('Logged out successfully');
+  };
+
+     const handleSubmit = async (e) => {
+     e.preventDefault();
+     setIsLoading(true);
+     try {
+      let endpoint = '';
+      let formData = {};
+      let method = 'POST';
+
+      switch (activeTab) {
+        case 'banner':
+          endpoint = '/api/banner';
+          formData = bannerForm;
+          break;
+        case 'loan-types':
+          if (editingItem) {
+            endpoint = `/api/loan-types/${editingItem._id}`;
+            method = 'PUT';
+          } else {
+            endpoint = '/api/loan-types';
+          }
+          // Process loan type form data
+          formData = {
+            ...loanTypeForm,
+            link: loanTypeForm.link || '',
+            // Convert typesOfLoan string to array
+            typesOfLoan: loanTypeForm.typesOfLoan ? 
+              loanTypeForm.typesOfLoan.split(',').map(item => item.trim()).filter(item => item) : [],
+            // Filter out empty eligibility and documents
+            eligibility: loanTypeForm.eligibility.filter(item => item.trim()),
+            documents: loanTypeForm.documents.filter(doc => doc.trim()),
+            // Filter out empty features
+            features: loanTypeForm.features.filter(feature => feature.text.trim())
+          };
+          break;
+        case 'stats':
+          endpoint = '/api/stats';
+          formData = statForm;
+          break;
+      }
+
+      console.log('📤 Sending data to:', endpoint);
+      console.log('📤 Form data:', JSON.stringify(formData, null, 2));
+      
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+                     const result = await response.json();
+        console.log('📋 API Response:', result);
+        if (result.success) {
+          toast.success(editingItem ? 'Data updated successfully!' : 'Data saved successfully!');
+          setShowForm(false);
+          setEditingItem(null);
+          
+          // Always fetch fresh data to ensure consistency
+          await fetchData();
+          
+          // Trigger home page update
+          triggerHomePageUpdate();
+          
+          resetForms();
+        } else {
+          console.error('❌ API Error:', result.error);
+          toast.error(result.error || 'Error saving data');
+        }
+     } catch (error) {
+       toast.error('Error saving data');
+     } finally {
+       setIsLoading(false);
+     }
+  };
+
+  const resetForms = () => {
+    setBannerForm({
+      title: '',
+      subtitle: '',
+      features: [{ icon: '', text: '', color: 'text-green-500' }]
+    });
+    
+    // Calculate next order number for loan types (considering both default and database items)
+    const nextOrder = loanTypes.length > 0 
+      ? Math.max(...loanTypes.map(loan => loan.order || 0)) + 1 
+      : 7; // Start after default items (1-6)
+    
+    setLoanTypeForm({
+      title: '',
+      subtitle: '',
+      description: '',
+      typesOfLoan: '',
+      features: [{ icon: 'FaCheckCircle', text: '', color: 'text-green-500' }],
+      icon: 'FaWallet',
+      iconColor: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      link: '',
+      order: nextOrder,
+      eligibility: [''],
+      documents: [''],
+      loanAmount: { min: '', max: '' },
+      interestRate: { min: '', max: '' },
+      tenure: { min: '', max: '' }
+    });
+    setStatForm({
+      value: '',
+      label: '',
+      icon: '',
+      iconColor: 'text-blue-600',
+      order: 0
+    });
+  };
+
+  const addFeature = () => {
+    setBannerForm(prev => ({
+      ...prev,
+      features: [...prev.features, { icon: '', text: '', color: 'text-green-500' }]
+    }));
+  };
+
+  const removeFeature = (index) => {
+    setBannerForm(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateFeature = (index, field, value) => {
+    setBannerForm(prev => ({
+      ...prev,
+      features: prev.features.map((feature, i) => 
+        i === index ? { ...feature, [field]: value } : feature
+      )
+    }));
+  };
+
+  // Loan Type Form Helper Functions
+  const addLoanFeature = () => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      features: [...prev.features, { icon: 'FaCheckCircle', text: '', color: 'text-green-500' }]
+    }));
+  };
+
+  const removeLoanFeature = (index) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateLoanFeature = (index, field, value) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      features: prev.features.map((feature, i) => 
+        i === index ? { ...feature, [field]: value } : feature
+      )
+    }));
+  };
+
+  const addEligibility = () => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      eligibility: [...prev.eligibility, '']
+    }));
+  };
+
+  const removeEligibility = (index) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      eligibility: prev.eligibility.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateEligibility = (index, value) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      eligibility: prev.eligibility.map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const addDocument = () => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      documents: [...prev.documents, '']
+    }));
+  };
+
+  const removeDocument = (index) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateDocument = (index, value) => {
+    setLoanTypeForm(prev => ({
+      ...prev,
+      documents: prev.documents.map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  if (showLogin) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <Toaster />
+        <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-800">Admin Login</h1>
+            <p className="text-gray-600">Elite Finsoles Dashboard</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-gray-500"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+            
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <FaSignInAlt />
+              Login
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex">
+      <Toaster />
+      
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col`}>
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            {sidebarOpen && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Admin</h2>
+                <p className="text-sm text-gray-500">Dashboard</p>
+              </div>
+            )}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              {sidebarOpen ? <FaClose className="text-gray-600" /> : <FaBars className="text-gray-600" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 p-4 space-y-2">
+          {navigationItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group ${
+                activeTab === item.id
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+              }`}
+            >
+              <div className={`${activeTab === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                {item.icon}
+              </div>
+              {sidebarOpen && (
+                <div className="flex-1 text-left">
+                  <div className="font-semibold">{item.name}</div>
+                  <div className={`text-xs ${activeTab === item.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                    {item.description}
+                  </div>
+                </div>
+              )}
+              {sidebarOpen && activeTab === item.id && (
+                <FaChevronRight className="text-sm" />
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">{admin?.username?.charAt(0).toUpperCase()}</span>
+            </div>
+            {sidebarOpen && (
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{admin?.username}</p>
+                <p className="text-xs text-gray-500">Administrator</p>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 font-semibold text-sm"
+          >
+            <FaSignOutAlt className="text-sm" />
+            {sidebarOpen && 'Logout'}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-800">
+                {navigationItems.find(item => item.id === activeTab)?.name}
+              </h1>
+              <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+              <p className="text-gray-600 font-medium">
+                {navigationItems.find(item => item.id === activeTab)?.description}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-sm font-semibold text-gray-800">Welcome back</p>
+                <p className="text-xs text-gray-500">{admin?.username}</p>
+              </div>
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold">{admin?.username?.charAt(0).toUpperCase()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-6xl mx-auto">
+            {/* Tabs */}
+            <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-sm mb-8">
+              {['banner', 'loan-types', 'stats'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === tab
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {tab === 'banner' ? 'Banner' : tab === 'loan-types' ? 'Loan Types' : 'Statistics'}
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {activeTab === 'banner' ? 'Banner Management' : 
+                   activeTab === 'loan-types' ? 'Loan Types Management' : 
+                   'Statistics Management'}
+                </h2>
+                             <div className="flex gap-2">
+                                   <button
+                  onClick={() => {
+                    // Calculate next order number before opening form
+                    if (activeTab === 'loan-types') {
+                      const nextOrder = loanTypes.length > 0 
+                        ? Math.max(...loanTypes.map(loan => loan.order || 0)) + 1 
+                        : 7; // Start after default items (1-6)
+                      setLoanTypeForm(prev => ({ ...prev, order: nextOrder }));
+                    }
+                    setShowForm(true);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <FaPlus />
+                  Add New
+                </button>
+                             {activeTab === 'loan-types' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        // Sample data for Personal Loan
+                        setLoanTypeForm({
+                          title: 'Personal Loan',
+                          subtitle: 'Flexible financing for your needs',
+                          description: 'Get the financial support you need with our personal loan options. Whether it\'s for medical expenses, debt consolidation, or any personal need, we offer competitive rates and flexible terms.',
+                          typesOfLoan: 'Personal Loan, Debt Consolidation, Medical Loan',
+                          features: [
+                            { icon: 'FaCheckCircle', text: 'Quick approval process', color: 'text-green-500' },
+                            { icon: 'FaStar', text: 'Competitive interest rates', color: 'text-blue-500' },
+                            { icon: 'FaShieldAlt', text: 'No collateral required', color: 'text-purple-500' }
+                          ],
+                          icon: 'FaWallet',
+                          iconColor: 'text-blue-600',
+                          bgColor: 'bg-blue-50',
+                          link: '',
+                          order: loanTypes.length > 0 ? Math.max(...loanTypes.map(loan => loan.order || 0)) + 1 : 7,
+                          eligibility: [
+                            'Age between 21-58 years',
+                            'Minimum monthly income ₹25,000',
+                            'Good credit score (750+)',
+                            'Stable employment history'
+                          ],
+                          documents: [
+                            'PAN Card',
+                            'Aadhaar Card',
+                            'Salary slips (last 3 months)',
+                            'Bank statements (last 6 months)',
+                            'Address proof'
+                          ],
+                          loanAmount: { min: '₹50,000', max: '₹25,00,000' },
+                          interestRate: { min: '10.49%', max: '24% p.a.' },
+                          tenure: { min: '12 months', max: '60 months' }
+                        });
+                        setShowForm(true);
+                      }}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors flex items-center gap-2"
+                    >
+                      <FaPlus />
+                      Add Sample Data
+                    </button>
+                    {loanTypes.length > 0 && (
+                      <button
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete ALL loan types? This action cannot be undone.')) {
+                            try {
+                              // Delete all database items
+                              const deletePromises = loanTypes
+                                .filter(loan => loan._id)
+                                .map(loan => 
+                                  fetch(`/api/loan-types/${loan._id}`, { method: 'DELETE' })
+                                );
+                              
+                              await Promise.all(deletePromises);
+                              
+                              // Mark all default items as deleted
+                              const defaultKeys = loanTypes
+                                .filter(loan => defaultStringIds.includes(loan._id))
+                                .map(loan => `${loan.title}-${loan.icon}`);
+                              
+                              updateDeletedDefaults(new Set([...deletedDefaults, ...defaultKeys]));
+                              
+                              toast.success('All loan types deleted successfully');
+                              fetchData();
+                              // Trigger home page update immediately
+                              triggerHomePageUpdate();
+                            } catch (error) {
+                              console.error('Error deleting all loan types:', error);
+                              toast.error('Error deleting loan types');
+                            }
+                          }
+                        }}
+                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center gap-2"
+                      >
+                        <FaTrash />
+                        Delete All
+                      </button>
+                    )}
+                    {deletedDefaults.size > 0 && (
+                      <button
+                        onClick={() => {
+                          updateDeletedDefaults(new Set());
+                          toast.success('Default loan types restored');
+                          fetchData();
+                          // Trigger home page update immediately
+                          triggerHomePageUpdate();
+                        }}
+                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
+                      >
+                        <FaPlus />
+                        Restore Defaults
+                      </button>
+                    )}
+                  </>
+                )}
+             </div>
+            </div>
+
+            {/* Data Display */}
+            <div className="space-y-4">
+              {activeTab === 'banner' && bannerData && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Current Banner</h3>
+                  <p><strong>Title:</strong> {bannerData.title}</p>
+                  <p><strong>Subtitle:</strong> {bannerData.subtitle}</p>
+                  <div className="mt-2">
+                    <strong>Features:</strong>
+                    <ul className="list-disc list-inside ml-4">
+                      {bannerData.features?.map((feature, index) => (
+                        <li key={index}>{feature.text} ({feature.icon})</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+                           {activeTab === 'loan-types' && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                   {loanTypes.length === 0 ? (
+                     <div className="col-span-full text-center py-8 text-gray-500">
+                       <p>No loan types added yet.</p>
+                       <p className="text-sm">Click "Add New" to create your first loan type.</p>
+                     </div>
+                   ) : (
+                     loanTypes.map((loan, index) => (
+                       <div key={loan._id || `${loan.title}-${loan.icon}`} className="border rounded-lg p-4 relative hover:shadow-md transition-shadow">
+                         <div className="flex justify-between items-start mb-2">
+                           <h3 className="font-semibold">{loan.title}</h3>
+                           <div className="flex gap-1">
+                             <button
+                               onClick={() => {
+                                 const isDefault = defaultStringIds.includes(loan._id);
+                                 
+                                 // For default items, we'll create a new one (not edit the original)
+                                 if (isDefault) {
+                                   setEditingItem(null); // This will create a new item
+                                   setLoanTypeForm({
+                                     title: loan.title,
+                                     subtitle: loan.subtitle || '',
+                                     description: loan.description,
+                                     typesOfLoan: Array.isArray(loan.typesOfLoan) ? loan.typesOfLoan.join(', ') : (loan.typesOfLoan || ''),
+                                     features: loan.features && loan.features.length > 0 ? loan.features : [{ icon: 'FaCheckCircle', text: '', color: 'text-green-500' }],
+                                     icon: loan.icon,
+                                     iconColor: loan.iconColor,
+                                     bgColor: loan.bgColor,
+                                     link: loan.link || '',
+                                     order: loan.order,
+                                     eligibility: loan.eligibility && loan.eligibility.length > 0 ? loan.eligibility : [''],
+                                     documents: loan.documents && loan.documents.length > 0 ? loan.documents : [''],
+                                     loanAmount: loan.loanAmount || { min: '', max: '' },
+                                     interestRate: loan.interestRate || { min: '', max: '' },
+                                     tenure: loan.tenure || { min: '', max: '' }
+                                   });
+                                 } else {
+                                   setEditingItem(loan);
+                                   setLoanTypeForm({
+                                     title: loan.title,
+                                     subtitle: loan.subtitle || '',
+                                     description: loan.description,
+                                     typesOfLoan: Array.isArray(loan.typesOfLoan) ? loan.typesOfLoan.join(', ') : (loan.typesOfLoan || ''),
+                                     features: loan.features && loan.features.length > 0 ? loan.features : [{ icon: 'FaCheckCircle', text: '', color: 'text-green-500' }],
+                                     icon: loan.icon,
+                                     iconColor: loan.iconColor,
+                                     bgColor: loan.bgColor,
+                                     link: loan.link || '',
+                                     order: loan.order,
+                                     eligibility: loan.eligibility && loan.eligibility.length > 0 ? loan.eligibility : [''],
+                                     documents: loan.documents && loan.documents.length > 0 ? loan.documents : [''],
+                                     loanAmount: loan.loanAmount || { min: '', max: '' },
+                                     interestRate: loan.interestRate || { min: '', max: '' },
+                                     tenure: loan.tenure || { min: '', max: '' }
+                                   });
+                                 }
+                                 setShowForm(true);
+                               }}
+                               className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+                               title={defaultStringIds.includes(loan._id) ? "Create editable copy" : "Edit"}
+                             >
+                               <FaEdit />
+                             </button>
+                             <button
+                               onClick={async () => {
+                                 const isDefault = defaultStringIds.includes(loan._id);
+                                 const confirmMessage = isDefault 
+                                   ? `Are you sure you want to remove "${loan.title}" from the display? You can restore it later using the "Restore Defaults" button.`
+                                   : 'Are you sure you want to delete this loan type?';
+                                 
+                                 if (confirm(confirmMessage)) {
+                                   try {
+                                     // Check if loan is a default item (has string _id) or database item (has ObjectId _id)
+                                     if (isDefault) {
+                                       // For default items, mark them as deleted in local state
+                                       const defaultKey = `${loan.title}-${loan.icon}`;
+                                       const newDeletedDefaults = new Set([...deletedDefaults, defaultKey]);
+                                       updateDeletedDefaults(newDeletedDefaults);
+                                       toast.success(`"${loan.title}" removed from display. Use "Restore Defaults" to bring it back.`);
+                                       // Optimistically update the UI
+                                       setLoanTypes(prev => prev.filter(item => 
+                                         !(item.title === loan.title && item.icon === loan.icon && defaultStringIds.includes(item._id))
+                                       ));
+                                       // Trigger home page update
+                                       triggerHomePageUpdate();
+                                       return;
+                                     }
+                                     
+                                     const response = await fetch(`/api/loan-types/${loan._id}`, {
+                                       method: 'DELETE'
+                                     });
+                                     
+                                     if (response.ok) {
+                                       toast.success('Loan type deleted successfully');
+                                       // Optimistically update the UI
+                                       setLoanTypes(prev => prev.filter(item => item._id !== loan._id));
+                                       // Trigger home page update immediately
+                                       triggerHomePageUpdate();
+                                     } else {
+                                       const errorData = await response.json();
+                                       toast.error(errorData.error || 'Failed to delete loan type');
+                                     }
+                                   } catch (error) {
+                                     console.error('Error deleting loan type:', error);
+                                     toast.error('Error deleting loan type');
+                                   }
+                                 }
+                               }}
+                               className="p-1 text-red-600 hover:text-red-800 transition-colors"
+                               title={defaultStringIds.includes(loan._id) ? "Remove default item" : "Delete"}
+                             >
+                               <FaTrash />
+                             </button>
+                           </div>
+                         </div>
+                         <p className="text-gray-600">{loan.description}</p>
+                         <p className="text-sm text-gray-500">Icon: {loan.icon}</p>
+                         <p className="text-sm text-gray-500">Order: {loan.order}</p>
+                         {defaultStringIds.includes(loan._id) && (
+                           <div className="absolute bottom-2 right-2">
+                             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Default</span>
+                           </div>
+                         )}
+                       </div>
+                     ))
+                   )}
+                 </div>
+               )}
+
+              {activeTab === 'stats' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {stats.map((stat, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <h3 className="font-semibold">{stat.value}</h3>
+                      <p className="text-gray-600">{stat.label}</p>
+                      <p className="text-sm text-gray-500">Icon: {stat.icon}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+                             <h2 className="text-xl font-semibold">
+                 {activeTab === 'banner' ? 'Add/Edit Banner' : 
+                  activeTab === 'loan-types' ? (editingItem ? 'Edit Loan Type' : 'Add New Loan Type') : 
+                  'Add/Edit Statistic'}
+               </h2>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingItem(null);
+                  resetForms();
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {activeTab === 'banner' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={bannerForm.title}
+                      onChange={(e) => setBannerForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
+                    <input
+                      type="text"
+                      value={bannerForm.subtitle}
+                      onChange={(e) => setBannerForm(prev => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Features</label>
+                    {bannerForm.features.map((feature, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          placeholder="Icon (e.g., FaCheckCircle)"
+                          value={feature.icon}
+                          onChange={(e) => updateFeature(index, 'icon', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Text"
+                          value={feature.text}
+                          onChange={(e) => updateFeature(index, 'text', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                        <select
+                          value={feature.color}
+                          onChange={(e) => updateFeature(index, 'color', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="text-green-500">Green</option>
+                          <option value="text-blue-500">Blue</option>
+                          <option value="text-purple-500">Purple</option>
+                          <option value="text-red-500">Red</option>
+                          <option value="text-yellow-500">Yellow</option>
+                        </select>
+                        {bannerForm.features.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeFeature(index)}
+                            className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addFeature}
+                      className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                    >
+                      Add Feature
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'loan-types' && (
+                <>
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                      <input
+                        type="text"
+                        value={loanTypeForm.title}
+                        onChange={(e) => setLoanTypeForm(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Personal Loan"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
+                      <input
+                        type="text"
+                        value={loanTypeForm.subtitle}
+                        onChange={(e) => setLoanTypeForm(prev => ({ ...prev, subtitle: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Flexible financing for your needs"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <textarea
+                      value={loanTypeForm.description}
+                      onChange={(e) => setLoanTypeForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows="3"
+                      placeholder="Detailed description of the loan type..."
+                      required
+                    />
+                  </div>
+
+                  {/* Types of Loan */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Types of Loan (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={loanTypeForm.typesOfLoan}
+                      onChange={(e) => setLoanTypeForm(prev => ({ ...prev, typesOfLoan: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., Personal Loan, Debt Consolidation, Medical Loan"
+                    />
+                  </div>
+
+                  {/* Key Features */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Key Features</label>
+                    <div className="space-y-2">
+                      {loanTypeForm.features.map((feature, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <select
+                            value={feature.icon}
+                            onChange={(e) => updateLoanFeature(index, 'icon', e.target.value)}
+                            className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="FaCheckCircle">✓ Check Circle</option>
+                            <option value="FaStar">★ Star</option>
+                            <option value="FaShieldAlt">🛡️ Shield</option>
+                            <option value="FaClock">⏰ Clock</option>
+                            <option value="FaHandshake">🤝 Handshake</option>
+                            <option value="FaHeart">❤️ Heart</option>
+                            <option value="FaLeaf">🍃 Leaf</option>
+                            <option value="FaRocket">🚀 Rocket</option>
+                            <option value="FaLightbulb">💡 Lightbulb</option>
+                            <option value="FaTrophy">🏆 Trophy</option>
+                            <option value="FaAward">🏅 Award</option>
+                            <option value="FaGem">💎 Gem</option>
+                            <option value="FaCrown">👑 Crown</option>
+                            <option value="FaDiamond">💎 Diamond</option>
+                            <option value="FaMedal">🥇 Medal</option>
+                            <option value="FaHome">🏠 Home</option>
+                            <option value="FaCar">🚗 Car</option>
+                            <option value="FaGraduationCap">🎓 Graduation</option>
+                            <option value="FaBriefcase">💼 Briefcase</option>
+                            <option value="FaWallet">👛 Wallet</option>
+                            <option value="FaPiggyBank">🐷 Piggy Bank</option>
+                            <option value="FaPercent">% Percent</option>
+                            <option value="FaCalendarAlt">📅 Calendar</option>
+                            <option value="FaTools">🔧 Tools</option>
+                            <option value="FaGlobe">🌍 Globe</option>
+                            <option value="FaBolt">⚡ Bolt</option>
+                            <option value="FaCoins">🪙 Coins</option>
+                            <option value="FaLock">🔒 Lock</option>
+                            <option value="FaFileAlt">📄 File</option>
+                            <option value="FaBuilding">🏢 Building</option>
+                            <option value="FaChartLine">📈 Chart</option>
+                            <option value="FaCalculator">🧮 Calculator</option>
+                            <option value="FaHeadset">🎧 Headset</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={feature.text}
+                            onChange={(e) => updateLoanFeature(index, 'text', e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Feature description"
+                          />
+                          <select
+                            value={feature.color}
+                            onChange={(e) => updateLoanFeature(index, 'color', e.target.value)}
+                            className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="text-green-500">🟢 Green</option>
+                            <option value="text-blue-500">🔵 Blue</option>
+                            <option value="text-purple-500">🟣 Purple</option>
+                            <option value="text-orange-500">🟠 Orange</option>
+                            <option value="text-red-500">🔴 Red</option>
+                            <option value="text-indigo-500">🔷 Indigo</option>
+                            <option value="text-pink-500">🌸 Pink</option>
+                            <option value="text-yellow-500">🟡 Yellow</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeLoanFeature(index)}
+                            className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addLoanFeature}
+                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        + Add Feature
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Loan Details */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Loan Details</label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Loan Amount (Min)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.loanAmount.min}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            loanAmount: { ...prev.loanAmount, min: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., ₹50,000"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Loan Amount (Max)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.loanAmount.max}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            loanAmount: { ...prev.loanAmount, max: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., ₹25,00,000"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Interest Rate (Min)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.interestRate.min}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            interestRate: { ...prev.interestRate, min: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., 10.99%"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Interest Rate (Max)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.interestRate.max}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            interestRate: { ...prev.interestRate, max: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., 24%"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Tenure (Min)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.tenure.min}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            tenure: { ...prev.tenure, min: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., 12 months"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Tenure (Max)</label>
+                        <input
+                          type="text"
+                          value={loanTypeForm.tenure.max}
+                          onChange={(e) => setLoanTypeForm(prev => ({ 
+                            ...prev, 
+                            tenure: { ...prev.tenure, max: e.target.value }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., 60 months"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Eligibility */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Eligibility Criteria</label>
+                    <div className="space-y-2">
+                      {loanTypeForm.eligibility.map((item, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <span className="text-green-500 text-lg">✓</span>
+                          <input
+                            type="text"
+                            value={item}
+                            onChange={(e) => updateEligibility(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g., Age between 21-65 years"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeEligibility(index)}
+                            className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addEligibility}
+                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        + Add Eligibility
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Documents Required */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Documents Required</label>
+                    <div className="space-y-2">
+                      {loanTypeForm.documents.map((doc, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <span className="text-blue-500 text-lg">📄</span>
+                          <input
+                            type="text"
+                            value={doc}
+                            onChange={(e) => updateDocument(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g., PAN Card"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(index)}
+                            className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addDocument}
+                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        + Add Document
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Visual Settings */}
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                      <select
+                        value={loanTypeForm.icon}
+                        onChange={(e) => setLoanTypeForm(prev => ({ ...prev, icon: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="FaWallet">👛 Wallet</option>
+                        <option value="FaHome">🏠 Home</option>
+                        <option value="FaBriefcase">💼 Briefcase</option>
+                        <option value="FaGraduationCap">🎓 Graduation</option>
+                        <option value="FaCar">🚗 Car</option>
+                        <option value="FaGem">💎 Gem</option>
+                        <option value="FaPiggyBank">🐷 Piggy Bank</option>
+                        <option value="FaCreditCard">💳 Credit Card</option>
+                        <option value="FaUniversity">🏛️ University</option>
+                        <option value="FaBuilding">🏢 Building</option>
+                        <option value="FaChartLine">📈 Chart</option>
+                        <option value="FaHandshake">🤝 Handshake</option>
+                        <option value="FaShieldAlt">🛡️ Shield</option>
+                        <option value="FaStar">★ Star</option>
+                        <option value="FaTrophy">🏆 Trophy</option>
+                        <option value="FaAward">🏅 Award</option>
+                        <option value="FaHeart">❤️ Heart</option>
+                        <option value="FaLeaf">🍃 Leaf</option>
+                        <option value="FaRocket">🚀 Rocket</option>
+                        <option value="FaLightbulb">💡 Lightbulb</option>
+                        <option value="FaCog">⚙️ Cog</option>
+                        <option value="FaTools">🔧 Tools</option>
+                        <option value="FaWrench">🔧 Wrench</option>
+                        <option value="FaHammer">🔨 Hammer</option>
+                        <option value="FaKey">🔑 Key</option>
+                        <option value="FaLock">🔒 Lock</option>
+                        <option value="FaUnlock">🔓 Unlock</option>
+                        <option value="FaCheckCircle">✓ Check Circle</option>
+                        <option value="FaTimesCircle">✗ Times Circle</option>
+                        <option value="FaInfoCircle">ℹ️ Info Circle</option>
+                        <option value="FaQuestionCircle">❓ Question Circle</option>
+                        <option value="FaExclamationCircle">❗ Exclamation Circle</option>
+                        <option value="FaPlusCircle">➕ Plus Circle</option>
+                        <option value="FaMinusCircle">➖ Minus Circle</option>
+                        <option value="FaPlayCircle">▶️ Play Circle</option>
+                        <option value="FaPauseCircle">⏸️ Pause Circle</option>
+                        <option value="FaStopCircle">⏹️ Stop Circle</option>
+                        <option value="FaUser">👤 User</option>
+                        <option value="FaUsers">👥 Users</option>
+                        <option value="FaUserTie">👔 User Tie</option>
+                        <option value="FaUserGraduate">🎓 User Graduate</option>
+                        <option value="FaUserCog">⚙️ User Cog</option>
+                        <option value="FaUserShield">🛡️ User Shield</option>
+                        <option value="FaUserCheck">✓ User Check</option>
+                        <option value="FaUserPlus">➕ User Plus</option>
+                        <option value="FaUserMinus">➖ User Minus</option>
+                        <option value="FaUserTimes">✗ User Times</option>
+                        <option value="FaUserEdit">✏️ User Edit</option>
+                        <option value="FaUserClock">⏰ User Clock</option>
+                        <option value="FaUserLock">🔒 User Lock</option>
+                        <option value="FaUserUnlock">🔓 User Unlock</option>
+                        <option value="FaUserSecret">🤐 User Secret</option>
+                        <option value="FaUserNinja">🥷 User Ninja</option>
+                        <option value="FaUserAstronaut">👨‍🚀 User Astronaut</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon Color</label>
+                      <select
+                        value={loanTypeForm.iconColor}
+                        onChange={(e) => setLoanTypeForm(prev => ({ ...prev, iconColor: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="text-blue-600">🔵 Blue</option>
+                        <option value="text-green-600">🟢 Green</option>
+                        <option value="text-amber-600">🟠 Amber</option>
+                        <option value="text-purple-600">🟣 Purple</option>
+                        <option value="text-red-600">🔴 Red</option>
+                        <option value="text-yellow-600">🟡 Yellow</option>
+                        <option value="text-orange-600">🟠 Orange</option>
+                        <option value="text-indigo-600">🔷 Indigo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                      <select
+                        value={loanTypeForm.bgColor}
+                        onChange={(e) => setLoanTypeForm(prev => ({ ...prev, bgColor: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="bg-blue-50">🔵 Blue</option>
+                        <option value="bg-green-50">🟢 Green</option>
+                        <option value="bg-amber-50">🟠 Amber</option>
+                        <option value="bg-purple-50">🟣 Purple</option>
+                        <option value="bg-red-50">🔴 Red</option>
+                        <option value="bg-yellow-50">🟡 Yellow</option>
+                        <option value="bg-orange-50">🟠 Orange</option>
+                        <option value="bg-indigo-50">🔷 Indigo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                      <input
+                        type="number"
+                        value={loanTypeForm.order === 0 ? '0' : loanTypeForm.order || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value === '' ? 0 : parseInt(value) || 0;
+                          setLoanTypeForm(prev => ({ ...prev, order: numValue }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'stats' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                      <input
+                        type="text"
+                        value={statForm.value}
+                        onChange={(e) => setStatForm(prev => ({ ...prev, value: e.target.value }))}
+                        placeholder="e.g., 50+"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                      <input
+                        type="text"
+                        value={statForm.label}
+                        onChange={(e) => setStatForm(prev => ({ ...prev, label: e.target.value }))}
+                        placeholder="e.g., Loan Options"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                      <input
+                        type="text"
+                        value={statForm.icon}
+                        onChange={(e) => setStatForm(prev => ({ ...prev, icon: e.target.value }))}
+                        placeholder="e.g., FaPuzzlePiece"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon Color</label>
+                      <select
+                        value={statForm.iconColor}
+                        onChange={(e) => setStatForm(prev => ({ ...prev, iconColor: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="text-blue-600">Blue</option>
+                        <option value="text-green-600">Green</option>
+                        <option value="text-yellow-600">Yellow</option>
+                        <option value="text-purple-600">Purple</option>
+                        <option value="text-red-600">Red</option>
+                      </select>
+                    </div>
+                                         <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                                               <input
+                          type="number"
+                          value={statForm.order === 0 ? '0' : statForm.order || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const numValue = value === '' ? 0 : parseInt(value) || 0;
+                            setStatForm(prev => ({ ...prev, order: numValue }));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                     </div>
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingItem(null);
+                    resetForms();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                                 <button
+                   type="submit"
+                   disabled={isLoading}
+                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
+                   {isLoading ? (
+                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                   ) : (
+                     <FaSave />
+                   )}
+                   {isLoading ? 'Saving...' : (editingItem ? 'Update' : 'Save')}
+                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminDashboard; 
