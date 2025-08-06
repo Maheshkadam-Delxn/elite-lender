@@ -1,11 +1,5 @@
 {
-  "/api/loan-types/route": "app/api/loan-types/route.js",
-  "/api/loan-types/[id]/route": "app/api/loan-types/[id]/route.js",
   "/api/banner/route": "app/api/banner/route.js",
-  "/api/stats/route": "app/api/stats/route.js",
-  "/admin-dashboard/page": "app/admin-dashboard/page.js",
-  "/(main)/terms-and-conditions/page": "app/(main)/terms-and-conditions/page.js",
-  "/(main)/loan-types/[id]/page": "app/(main)/loan-types/[id]/page.js",
-  "/(main)/privacy-policy/page": "app/(main)/privacy-policy/page.js",
-  "/(main)/page": "app/(main)/page.js"
+  "/api/loan-types/route": "app/api/loan-types/route.js",
+  "/api/stats/route": "app/api/stats/route.js"
 }
