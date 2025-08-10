@@ -45,7 +45,7 @@ function makeRequest(url, method = 'GET', data = null) {
 }
 
 async function setupDatabase() {
-  console.log('🚀 Starting Elite Finsoles Database Setup...\n');
+  console.log('🚀 Starting Elite Finsols Database Setup...\n');
 
   try {
     // Step 1: Create admin user

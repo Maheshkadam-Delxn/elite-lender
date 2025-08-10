@@ -12,7 +12,7 @@ export async function POST(req) {
       }
     });
 
-    // Send email to Elite Finsoles
+    // Send email to Elite Finsols
     await transporter.sendMail({
       from: process.env.EMAIL_USERNAME,
       to: 'shreyassutar.delxn@gmail.com', // Company email
@@ -33,10 +33,10 @@ export async function POST(req) {
     await transporter.sendMail({
       from: process.env.EMAIL_USERNAME,
       to: email, // the user who submitted
-      subject: 'Thanks for contacting Elite Finsoles!',
+      subject: 'Thanks for contacting Elite Finsols!',
       html: `
         <h2>Hi ${name},</h2>
-        <p>Thank you for reaching out to Elite Finsoles. We've received your message and our team will get back to you soon.</p>
+        <p>Thank you for reaching out to Elite Finsols. We've received your message and our team will get back to you soon.</p>
         <br />
         <p>Here's a copy of your message:</p>
         <blockquote style="border-left: 4px solid #ccc; padding-left: 10px;">
@@ -44,7 +44,7 @@ export async function POST(req) {
         </blockquote>
         <br />
         <p>Best regards,</p>
-        <p><strong>Elite Finsoles Team</strong><br/>elite@finsoles.com</p>
+        <p><strong>Elite Finsols Team</strong><br/>elite@finsoles.com</p>
       `
     });
 

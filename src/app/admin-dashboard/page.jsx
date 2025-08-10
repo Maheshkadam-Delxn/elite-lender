@@ -570,7 +570,7 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Admin Portal
             </h1>
-            <p className="text-gray-600 font-medium">Elite Finsoles Dashboard</p>
+            <p className="text-gray-600 font-medium">Elite Finsols Dashboard</p>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto mt-3"></div>
           </div>
           
@@ -646,7 +646,7 @@ const AdminDashboard = () => {
         {/* Footer note */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
           <p className="text-xs text-gray-500">
-            © 2024 Elite Finsoles. All rights reserved.
+            © 2024 Elite Finsols. All rights reserved.
           </p>
         </div>
       </div>

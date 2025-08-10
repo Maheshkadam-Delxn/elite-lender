@@ -32,13 +32,13 @@ const LoanPlans = () => {
     { 
       name: "Car Loan", 
       img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", 
-      link: "/loans-types/car",
+      link: "/loan-types/vehicle",
       color: "from-red-100 to-red-50",
     },
     { 
       name: "Gold Loan", 
       img: "https://images.unsplash.com/photo-1610375461246-83df859d849d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", 
-      link: "/loans-types/gold",
+      link: "loan-types/gold",
       color: "from-amber-100 to-amber-50",
     }
   ];

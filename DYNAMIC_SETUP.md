@@ -1,6 +1,6 @@
-# Elite Finsoles - Dynamic Admin Dashboard Setup
+# Elite Finsols - Dynamic Admin Dashboard Setup
 
-This guide will help you set up the dynamic admin dashboard for the Elite Finsoles application with MongoDB integration.
+This guide will help you set up the dynamic admin dashboard for the Elite Finsols application with MongoDB integration.
 
 ## Prerequisites
 

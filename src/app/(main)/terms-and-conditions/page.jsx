@@ -31,7 +31,7 @@ const page = () => {
             <h2 className="text-2xl font-bold text-gray-800">Agreement Overview</h2>
           </div>
           <p className="text-gray-700 text-base leading-relaxed text-justify">
-            Welcome to <strong>Elite Finsoles</strong>. These Terms and Conditions govern your use of our loan services, website, and any related applications. By accessing or using our services, you agree to be bound by these terms. If you do not agree with any part of these terms, please do not use our services.
+            Welcome to <strong>Elite Finsols</strong>. These Terms and Conditions govern your use of our loan services, website, and any related applications. By accessing or using our services, you agree to be bound by these terms. If you do not agree with any part of these terms, please do not use our services.
           </p>
         </div>
 
@@ -44,11 +44,11 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            Elite Finsoles provides comprehensive loan services including personal loans, home loans, business loans, education loans, vehicle loans, and gold loans. Our services include loan application processing, credit assessment, loan disbursement, and ongoing account management.
+            Elite Finsols provides comprehensive loan services including personal loans, home loans, business loans, education loans, vehicle loans, and gold loans. Our services include loan application processing, credit assessment, loan disbursement, and ongoing account management.
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
-            By using our platform and providing your personal/contact details, you acknowledge your interest in exploring and applying for loan products. You consent to being contacted by Elite Finsoles via electronic communication or phone to discuss your loan application, provide assistance, send payment reminders, and fulfill your requests.
+            By using our platform and providing your personal/contact details, you acknowledge your interest in exploring and applying for loan products. You consent to being contacted by Elite Finsols via electronic communication or phone to discuss your loan application, provide assistance, send payment reminders, and fulfill your requests.
           </p>
         </div>
 
@@ -61,7 +61,7 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            Elite Finsoles grants you a limited license to access and use our platform and loan services for personal purposes only. This license strictly prohibits downloading or copying any information for the benefit of another individual, vendor, or third party.
+            Elite Finsols grants you a limited license to access and use our platform and loan services for personal purposes only. This license strictly prohibits downloading or copying any information for the benefit of another individual, vendor, or third party.
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
@@ -86,7 +86,7 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            Our loan services are not available to individuals under the age of 18 or to users who have been suspended or removed from our system by Elite Finsoles for any reason. Each user is allowed to maintain only one active account, and the sale, transfer, or exchange of accounts to any third party is strictly prohibited.
+            Our loan services are not available to individuals under the age of 18 or to users who have been suspended or removed from our system by Elite Finsols for any reason. Each user is allowed to maintain only one active account, and the sale, transfer, or exchange of accounts to any third party is strictly prohibited.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ const page = () => {
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
-            You also agree to provide true, accurate, current, and complete information as requested by our platform. If any information provided is found to be false, inaccurate, outdated, or incomplete, Elite Finsoles reserves the right to suspend or terminate your account.
+            You also agree to provide true, accurate, current, and complete information as requested by our platform. If any information provided is found to be false, inaccurate, outdated, or incomplete, Elite Finsols reserves the right to suspend or terminate your account.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            All loan applications are subject to approval based on our credit assessment criteria. Elite Finsoles reserves the right to approve, reject, or modify any loan application at its sole discretion. Loan terms, including interest rates, repayment schedules, and fees, will be clearly communicated to you upon approval.
+            All loan applications are subject to approval based on our credit assessment criteria. Elite Finsols reserves the right to approve, reject, or modify any loan application at its sole discretion. Loan terms, including interest rates, repayment schedules, and fees, will be clearly communicated to you upon approval.
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
@@ -139,11 +139,11 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            Elite Finsoles is committed to protecting your privacy and maintaining the security of your personal and financial information. We collect, use, and store your information in accordance with our Privacy Policy, which is incorporated into these Terms and Conditions by reference.
+            Elite Finsols is committed to protecting your privacy and maintaining the security of your personal and financial information. We collect, use, and store your information in accordance with our Privacy Policy, which is incorporated into these Terms and Conditions by reference.
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
-            You agree to provide accurate and complete information during the loan application process. Elite Finsoles may verify the information you provide through various means, including credit checks, employment verification, and document validation.
+            You agree to provide accurate and complete information during the loan application process. Elite Finsols may verify the information you provide through various means, including credit checks, employment verification, and document validation.
           </p>
         </div>
 
@@ -156,11 +156,11 @@ const page = () => {
             </h1>
           </div>
           <p className="text-justify leading-relaxed text-gray-700">
-            Elite Finsoles provides loan services "as is" and "as available" without any warranties, express or implied. We do not guarantee that our services will be uninterrupted, secure, or error-free. Elite Finsoles is not responsible for any delays, failures, or other problems arising from factors beyond our control.
+            Elite Finsols provides loan services "as is" and "as available" without any warranties, express or implied. We do not guarantee that our services will be uninterrupted, secure, or error-free. Elite Finsols is not responsible for any delays, failures, or other problems arising from factors beyond our control.
           </p>
 
           <p className="text-justify leading-relaxed text-gray-700 mt-4">
-            Elite Finsoles's liability is limited to the maximum extent permitted by law. In no event shall Elite Finsoles be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services.
+            Elite Finsols's liability is limited to the maximum extent permitted by law. In no event shall Elite Finsols be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our services.
           </p>
         </div>
 
@@ -176,7 +176,7 @@ const page = () => {
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Elite Finsoles</h3>
+              <h3 className="font-semibold text-gray-800 mb-2">Elite Finsols</h3>
               <p className="text-gray-600 text-sm">3rd Floor, Plot No.264/265, Vaswani Chamber,<br/>
               Dr.Annie Besant Road, Worli Colony, Mumbai-400018</p>
             </div>

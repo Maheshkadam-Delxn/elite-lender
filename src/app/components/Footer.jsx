@@ -6,27 +6,34 @@ import Image from "next/image";
 import FooterLogo from "../../../public/insurance/logo.png";
 
 export default function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* Brand info and socials */}
           <div className="md:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
+            <Link href="#" onClick={scrollToTop} className="flex items-center space-x-3 mb-4 cursor-pointer">
               <Image
                 src={FooterLogo}
-                alt="Elite Finsoles Logo"
+                alt="Elite Finsols Logo"
                 width={60}
                 height={60}
                 className="rounded-full"
               />
               <div>
                 <h3 className="text-2xl font-bold text-blue-400">
-                  Elite<span className="text-purple-400">Finsoles</span>
+                  Elite<span className="text-purple-400">Finsols</span>
                 </h3>
                 <p className="text-gray-400 text-sm">Your Trusted Financial Partner</p>
               </div>
-            </div>
+            </Link>
             <p className="mb-4">
               Empowering individuals and businesses with flexible loan solutions.
             </p>
@@ -99,18 +106,15 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-center items-center">
             <p className="mb-4 md:mb-0">
-              © {new Date().getFullYear()} Elite Finsoles. All rights reserved.
+              © {new Date().getFullYear()} Elite Finsols. All rights reserved
             </p>
-            <div className="flex space-x-4">
-              <Link href="/privacy-policy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">
-                Privacy Policy
-              </Link>
-              <Link href="/terms-and-conditions" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">
-                Terms of Service
-              </Link>
-            </div>
+          </div>
+          <div className="flex flex-col md:flex-row justify-center items-center">
+            <p className="mb-4 md:mb-0">
+              Manage And Maintain By Delxn Technology
+            </p>
           </div>
         </div>
       </div>

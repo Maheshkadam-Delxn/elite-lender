@@ -427,7 +427,7 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-800">Admin Login</h1>
-            <p className="text-gray-600">Elite Finsoles Dashboard</p>
+            <p className="text-gray-600">Elite Finsols Dashboard</p>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">

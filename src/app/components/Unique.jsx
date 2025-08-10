@@ -39,8 +39,8 @@ const Unique = () => {
   return (
     <div className="w-full py-12 bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={containerRef} className="flex flex-col lg:flex-row gap-8 items-center">
-          {/* Content Section */}
+        <div ref={containerRef} className="flex flex-col lg:flex-row gap-8">
+          {/* Left Content Section - Natural height cards */}
           <div className="w-full lg:w-1/2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -86,32 +86,23 @@ const Unique = () => {
             </div>
           </div>
 
-          {/* Image Section */}
+          {/* Right Image Section - Perfectly sized */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: containerInView ? 1 : 0, scale: containerInView ? 1 : 0.95 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="w-full lg:w-1/2 mt-8 lg:mt-0"
+            className="w-full lg:w-1/2 flex items-start"
           >
-            <div className="relative w-full h-64 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg">
+            <div className="relative w-full h-[620px] rounded-2xl overflow-hidden shadow-lg">
               <img
                 src="https://images.unsplash.com/photo-1604594849809-dfedbc827105?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                 alt="Happy customer with loan approval"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-blue-600/20"></div>
             </div>
           </motion.div>
         </div>
-
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: containerInView ? 1 : 0, y: containerInView ? 0 : 20 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          className="mt-12 text-center"
-        >
-        </motion.div>
       </div>
     </div>
   );

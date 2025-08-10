@@ -5,12 +5,12 @@ import { Quote } from "lucide-react";
 const testimonials = [
   { 
     name: "Rahul Jori", 
-    text: "Elite Finsoles made my home loan process incredibly smooth! I got approved in just 48 hours with the best interest rate in the market.",
+    text: "Elite Finsols made my home loan process incredibly smooth! I got approved in just 48 hours with the best interest rate in the market.",
     loanType: "Home Loan"
   },
   { 
     name: "Neha Verma", 
-    text: "I was struggling to get a business loan until I found Elite Finsoles. Their personalized approach and fast processing helped expand my business.",
+    text: "I was struggling to get a business loan until I found Elite Finsols. Their personalized approach and fast processing helped expand my business.",
     loanType: "Business Loan"
   },
   { 
@@ -20,12 +20,12 @@ const testimonials = [
   },
   { 
     name: "Priya Singh", 
-    text: "Elite Finsoles's education loan helped fulfill my daughter's dream of studying abroad. Transparent terms and flexible repayment options.",
+    text: "Elite Finsols's education loan helped fulfill my daughter's dream of studying abroad. Transparent terms and flexible repayment options.",
     loanType: "Education Loan"
   },
   { 
     name: "Rajesh Kumar", 
-    text: "The personal loan process was so quick and hassle-free. Elite Finsoles truly understands customer needs.",
+    text: "The personal loan process was so quick and hassle-free. Elite Finsols truly understands customer needs.",
     loanType: "Personal Loan"
   },
   { 
@@ -76,7 +76,7 @@ const Customers = () => {
           <div className="lg:w-1/2">
             <h1 className="text-4xl font-bold text-gray-900 mb-6">Clients Speak</h1>
             <p className="text-lg text-gray-700 mb-8">
-              Elite Finsoles designs and delivers innovative financial solutions using 
+              Elite Finsols designs and delivers innovative financial solutions using 
               cutting-edge technologies as per industry standards. With a growing 
               presence across India, we offer the most competitive loan products 
               with transparent terms and fast approvals.

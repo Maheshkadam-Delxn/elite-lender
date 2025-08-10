@@ -30,7 +30,7 @@ const Page = () => {
             <h2 className="text-2xl font-bold text-gray-800">Privacy Commitment</h2>
           </div>
           <p className="text-gray-700 text-base leading-relaxed text-justify">
-            <strong>Elite Finsoles</strong> is committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our loan services, or interact with our platform. By using our services, you consent to the data practices described in this policy.
+            <strong>Elite Finsols</strong> is committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our loan services, or interact with our platform. By using our services, you consent to the data practices described in this policy.
           </p>
         </div>
 
@@ -137,7 +137,7 @@ const Page = () => {
             <h2 className="lg:text-2xl font-semibold phone:text-lg text-gray-800">Data Security</h2>
           </div>
           <p className="text-gray-700 text-base leading-relaxed mb-4 text-justify">
-            Elite Finsoles implements comprehensive security measures to protect your personal information:
+            Elite Finsols implements comprehensive security measures to protect your personal information:
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
@@ -215,7 +215,7 @@ const Page = () => {
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Elite Finsoles</h3>
+              <h3 className="font-semibold text-gray-800 mb-2">Elite Finsols</h3>
               <p className="text-gray-600 text-sm">3rd Floor, Plot No.264/265, Vaswani Chamber,<br/>
               Dr.Annie Besant Road, Worli Colony, Mumbai-400018</p>
             </div>

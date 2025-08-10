@@ -53,7 +53,7 @@ const Why_Choose = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Choose Our Loan Services?
+            Why Choose Our Elite Finsols?
           </h2>
           <div className="w-24 h-1.5 bg-blue-600 mx-auto mb-6 rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">

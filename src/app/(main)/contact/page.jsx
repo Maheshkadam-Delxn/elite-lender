@@ -7,8 +7,6 @@ import {
   FaEnvelope, 
   FaMapMarkerAlt, 
   FaClock, 
-  FaUser, 
-  FaBuilding,
   FaArrowRight,
   FaWhatsapp,
   FaLinkedin,
@@ -19,8 +17,8 @@ import { toast, Toaster } from "react-hot-toast";
 
 const Contact = () => {
   const { ref: heroRef, inView: heroInView } = useInView({ triggerOnce: true });
-  const { ref: formRef, inView: formInView } = useInView({ triggerOnce: true });
-  const { ref: infoRef, inView: infoInView } = useInView({ triggerOnce: true });
+  const { ref: formRef, inView: formInView } = useInView({ triggerOnce: false });
+  const { ref: infoRef, inView: infoInView } = useInView({ triggerOnce: false });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -89,19 +87,19 @@ const Contact = () => {
     {
       icon: <FaEnvelope className="text-2xl" />,
       title: "Email",
-              value: "el@elitefinsoles.com",
-              link: "mailto:el@elitefinsoles.com",
+      value: "el@elitefinsoles.com",
+      link: "mailto:el@elitefinsoles.com",
       color: "text-green-600",
       bgColor: "bg-green-50"
     },
-         {
-       icon: <FaMapMarkerAlt className="text-2xl" />,
-       title: "Address",
-       value: "Pune, Maharashtra, India",
-       link: "https://maps.app.goo.gl/mx6aUSib4fSMzKRi9",
-       color: "text-purple-600",
-       bgColor: "bg-purple-50"
-     },
+    {
+      icon: <FaMapMarkerAlt className="text-2xl" />,
+      title: "Address",
+      value: "Pune, Maharashtra, India",
+      link: "https://maps.app.goo.gl/mx6aUSib4fSMzKRi9",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
     {
       icon: <FaClock className="text-2xl" />,
       title: "Business Hours",
@@ -158,7 +156,7 @@ const Contact = () => {
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
             Get in Touch with
-            <span className="text-blue-600"> Elite Finsoles</span>
+            <span className="text-blue-600"> Elite Finsols</span>
           </h1>
           <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Ready to transform your financial future? Let's connect and discuss how we can help you achieve your goals.
@@ -185,15 +183,15 @@ const Contact = () => {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             
             {/* Left Column - Contact Form & Follow Us */}
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               {/* Contact Form */}
               <motion.div
                 ref={formRef}
                 id="contact-form"
                 initial={{ opacity: 0, x: -50 }}
-                animate={formInView ? { opacity: 1, x: 0 } : {}}
+                animate={formInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
                 transition={{ duration: 0.8 }}
-                className="bg-white rounded-2xl shadow-xl p-6 lg:p-8"
+                className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 flex-1 flex flex-col"
               >
                 <div className="mb-6">
                   <h2 className="text-xl lg:text-2xl font-bold text-gray-800 mb-2">
@@ -204,95 +202,97 @@ const Contact = () => {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col">
+                  <div className="space-y-4 flex-1">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter your email"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter your phone number"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Company
+                        </label>
+                        <input
+                          type="text"
+                          name="company"
+                          value={formData.company}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Enter your company name"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Full Name *
+                        Subject *
                       </label>
                       <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="subject"
+                        value={formData.subject}
                         onChange={handleInputChange}
                         required
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your full name"
+                        placeholder="What is this regarding?"
                       />
                     </div>
+
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Email Address *
+                        Message *
                       </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
+                      <textarea
+                        name="message"
+                        value={formData.message}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your email"
-                      />
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                        placeholder="Tell us more about your requirements..."
+                      ></textarea>
                     </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Company
-                      </label>
-                      <input
-                        type="text"
-                        name="company"
-                        value={formData.company}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your company name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Subject *
-                    </label>
-                    <input
-                      type="text"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="What is this regarding?"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Message *
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                      placeholder="Tell us more about your requirements..."
-                    ></textarea>
                   </div>
 
                   <button
@@ -352,14 +352,14 @@ const Contact = () => {
             </div>
 
             {/* Right Column - Contact Information & Immediate Assistance */}
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               {/* Contact Information */}
               <motion.div
                 ref={infoRef}
                 initial={{ opacity: 0, x: 50 }}
-                animate={infoInView ? { opacity: 1, x: 0 } : {}}
+                animate={infoInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
                 transition={{ duration: 0.8 }}
-                className="bg-white rounded-2xl shadow-xl p-8 lg:p-12"
+                className="bg-white rounded-2xl shadow-xl p-8 lg:p-12 flex-1 h-full"
               >
                 <div className="mb-8">
                   <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
@@ -421,8 +421,6 @@ const Contact = () => {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };

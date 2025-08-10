@@ -64,16 +64,10 @@ const Header = () => {
   // Close the menu if user clicks outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
       }
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
     };
@@ -116,7 +110,7 @@ const Header = () => {
           >
             <div className="w-full flex items-start justify-between">
               <div className="flex flex-col items-start gap-3">
-                <h1 className="text-xl md:text-2xl font-semibold">Login to Elite Finsoles</h1>
+                <h1 className="text-xl md:text-2xl font-semibold">Login to Elite Finsols</h1>
                 <hr className="w-48 md:w-64" />
               </div>
               <button className="text-red-500 text-xl font-extrabold" onClick={handleCloseModal}>
@@ -138,11 +132,19 @@ const Header = () => {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-2 md:py-3 flex items-center justify-between">
-        {/* Logo Section */}
+      {/* Backdrop for mobile menu */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={toggleMenu}
+        />
+      )}
+
+      <div className="container mx-auto px-3 sm:px-4 py-2 md:py-3 flex items-center justify-between">
+        {/* Logo Section with reduced left padding on mobile */}
         <Link
           href="/"
-          className="flex items-center gap-2 md:gap-3"
+          className="flex items-center gap-2 md:gap-3 ml-1 sm:ml-0"
         >
           <div className="relative w-12 h-12 md:w-16 md:h-16">
             <Image
@@ -154,7 +156,7 @@ const Header = () => {
             />
           </div>
           <div className="flex flex-col items-start justify-center">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-800">Elite Finsoles</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-blue-800">Elite Finsols</h1>
             <p className="text-xs md:text-sm text-gray-600">Turning Possibilities Into Realities</p>
           </div>
         </Link>
@@ -162,7 +164,7 @@ const Header = () => {
         {/* Hamburger Menu Button */}
         <button
           onClick={toggleMenu}
-          className="block lg:hidden text-black focus:outline-none p-2"
+          className="block lg:hidden text-black focus:outline-none p-2 mr-1"
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
           {isMenuOpen ? (
@@ -238,7 +240,7 @@ const Header = () => {
           {isMenuOpen && (
             <motion.div
               ref={menuRef}
-              className="fixed top-0 right-0 w-4/5 h-full bg-white shadow-2xl z-50 flex flex-col p-6 overflow-y-auto"
+              className="fixed top-0 right-0 w-[300px] max-w-[85vw] h-full bg-white shadow-2xl z-50 flex flex-col pr-5 pl-5 pt-6 pb-6 overflow-y-auto"
               initial="hidden"
               animate="visible"
               exit="exit"

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-          title: "Elite Finsoles",
+          title: "Elite Finsols",
   description: "A trusted loan platform for all your loan needs.",
   icons: {
     icon: "/icons/sansar.png", // Favicon path is now in metadata
