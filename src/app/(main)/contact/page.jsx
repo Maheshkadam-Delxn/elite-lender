@@ -79,8 +79,8 @@ const Contact = () => {
     {
       icon: <FaPhone className="text-2xl" />,
       title: "Phone",
-      value: "+91 9561113316",
-      link: "tel:+919561113316",
+      value: "+91 8308588867",
+      link: "tel:+918308588867",
       color: "text-blue-600",
       bgColor: "bg-blue-50"
     },
@@ -95,7 +95,7 @@ const Contact = () => {
     {
       icon: <FaMapMarkerAlt className="text-2xl" />,
       title: "Address",
-      value: "Pune, Maharashtra, India",
+      value: "Office No.303, Third Floor, Audumber Nivya, Narhe, Pune - 411041",
       link: "https://maps.app.goo.gl/mx6aUSib4fSMzKRi9",
       color: "text-purple-600",
       bgColor: "bg-purple-50"
@@ -156,7 +156,7 @@ const Contact = () => {
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
             Get in Touch with
-            <span className="text-blue-600"> Elite Finsols</span>
+            <span className="text-blue-600"> Elite Financial Solutions</span>
           </h1>
           <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Ready to transform your financial future? Let's connect and discuss how we can help you achieve your goals.
@@ -410,11 +410,11 @@ const Contact = () => {
                   Call us directly for urgent inquiries or immediate support.
                 </p>
                 <a
-                  href="tel:+919561113316"
+                  href="tel:+918308588867"
                   className="inline-flex items-center justify-center px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   <FaPhone className="mr-2" />
-                  Call Now: +91 9561113316
+                  Call Now: +91 8308588867
                 </a>
               </motion.div>
             </div>

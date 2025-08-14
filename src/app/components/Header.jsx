@@ -156,8 +156,8 @@ const Header = () => {
             />
           </div>
           <div className="flex flex-col items-start justify-center">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-800">Elite Finsols</h1>
-            <p className="text-xs md:text-sm text-gray-600">Turning Possibilities Into Realities</p>
+            <h1 className="text-xl md:text-2xl font-bold text-blue-800">Elite Financial Solutions</h1>
+            <p className="text-xs md:text-sm text-gray-600">Your Trust, Our Experties</p>
           </div>
         </Link>
 

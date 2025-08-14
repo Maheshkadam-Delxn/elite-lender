@@ -167,7 +167,7 @@ const AboutUs = () => {
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <div className="space-y-6">
                 <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
-                  I am the Founder and CEO of <span className="font-bold text-blue-600">Elite Finsols</span>, a pioneering financial consultancy firm revolutionizing the financial landscape in Pune, India.
+                  I am the Founder and CEO of <span className="font-bold text-blue-600">Elite Financial Solutions</span>, a pioneering financial consultancy firm revolutionizing the financial landscape in Pune, India.
                 </p>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border-l-4 border-blue-600 shadow-lg">
@@ -198,7 +198,7 @@ const AboutUs = () => {
                 
                 <div className="text-center">
                   <h3 className="text-xl lg:text-2xl font-bold text-gray-800 mb-2">
-                    Elite Finsols
+                    Elite Financial Solutions
                   </h3>
                   <p className="text-gray-600 text-base">Pioneering Financial Solutions</p>
                 </div>

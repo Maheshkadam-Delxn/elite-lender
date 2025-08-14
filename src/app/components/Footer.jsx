@@ -29,7 +29,7 @@ export default function Footer() {
               />
               <div>
                 <h3 className="text-2xl font-bold text-blue-400">
-                  Elite<span className="text-purple-400">Finsols</span>
+                  Elite <span className="text-purple-400">Financial</span> Solution
                 </h3>
                 <p className="text-gray-400 text-sm">Your Trusted Financial Partner</p>
               </div>
@@ -87,12 +87,16 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <FaMapMarkerAlt size={20} className="mr-2 mt-1 flex-shrink-0 text-blue-400" />
-                <span>123 Financial Street, Banking District, Mumbai - 400001</span>
+                <span>Office No.303, Third Floor, Audumber Nivya, Narhe, Pune - 411041</span>
               </li>
               <li className="flex items-center">
                 <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>+91 9561113316</span>
+                <span>+91 8308588867</span>
               </li>
+              <li className="flex items-center">
+                <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
+                <span>+91 8669012275</span>
+              </li>              
               <li className="flex items-center">
                 <FaRegEnvelope size={20} className="mr-2 flex-shrink-0 text-blue-400" />
                 <span>elite@finsoles.com</span>

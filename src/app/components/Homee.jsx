@@ -636,76 +636,72 @@ const Homee = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6">
-      {/* Hero Banner Section */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <div className={`relative h-32 sm:h-40 md:h-48 rounded-xl overflow-hidden shadow-md ${banner.bgColor}`}>
-          {/* Background Images Carousel */}
-          {banner.images && banner.images.length > 0 && (
-            <div className="absolute inset-0">
-                            {banner.images.map((image, index) => (
-                    <div
-                      key={`${image.url}-${index}`}
-                      className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                        index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                      }`}
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.alt || 'Banner Image'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                    </div>
-              ))}
-              
-              {/* Image Navigation Dots */}
-              {banner.images.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {banner.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentImageIndex 
-                          ? 'bg-white scale-125' 
-                          : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                      }`}
-                      title={`Go to image ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-              
-
-            </div>
-          )}
-          
-
-          
-          {/* Content Overlay */}
-          <div className="relative z-10 h-full flex items-center px-4 sm:px-6 md:px-8">
-            <div className="text-white">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 text-center sm:text-left">
-                {banner.title}
-              </h1>
-              <p className="text-sm sm:text-base md:text-lg mb-3 opacity-90 text-center sm:text-left">
-                {banner.subtitle}
-              </p>
-              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center sm:justify-start">
-                {banner.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm">
-                    {feature.icon}
-                    <span>{feature.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+    {/* Hero Banner Section */}
+    <div className="max-w-6xl mx-auto mb-6">
+     <div className={`relative h-32 sm:h-40 md:h-48 rounded-xl overflow-hidden shadow-md ${banner.bgColor}`}>
+    {/* Background Images Carousel */}
+     {banner.images && banner.images.length > 0 && (
+      <div className="absolute inset-0">
+        {banner.images.map((image, index) => (
+          <div
+            key={`${image.url}-${index}`}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <img
+              src={image.url}
+              alt={image.alt || 'Banner Image'}
+              className="w-full h-full object-cover object-center"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           </div>
+        ))}
+        
+        {/* Image Navigation Dots - Only show if there are multiple images */}
+        {banner.images.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {banner.images.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentImageIndex 
+                    ? 'bg-white scale-125' 
+                    : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                }`}
+                title={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    
+    {/* Content Overlay - Hidden on mobile, shown on sm+ */}
+    <div className="relative z-10 h-full items-center px-4 sm:px-6 md:px-8 hidden sm:flex">
+      <div className="text-white">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1">
+          {banner.title}
+        </h1>
+        <p className="text-sm sm:text-base md:text-lg mb-3 opacity-90">
+          {banner.subtitle}
+        </p>
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          {banner.features.map((feature, idx) => (
+            <div key={idx} className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm">
+              {feature.icon}
+              <span>{feature.text}</span>
+            </div>
+          ))}
         </div>
       </div>
+    </div>
+    </div>
+    </div>
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -824,4 +820,4 @@ const Homee = () => {
   );
 };
 
-export default Homee;
+export default Homee
