@@ -172,8 +172,8 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch banner
-      const bannerRes = await fetch('/api/banner');
+      // Fetch banner (no-store to avoid stale cache)
+      const bannerRes = await fetch('/api/banner', { cache: 'no-store' });
       const bannerResult = await bannerRes.json();
       if (bannerResult.success) {
         setBannerData(bannerResult.data);
@@ -198,8 +198,8 @@ const AdminDashboard = () => {
         setLoanTypes(filteredLoanTypes);
       }
 
-      // Fetch stats
-      const statsRes = await fetch('/api/stats');
+      // Fetch stats (no-store to avoid overwriting with stale cache)
+      const statsRes = await fetch('/api/stats', { cache: 'no-store' });
       const statsResult = await statsRes.json();
       if (statsResult.success) {
         setStats(statsResult.data);
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
           };
           break;
         case 'stats':
-          if (editingItem) {
+          if (editingItem && editingItem._id) {
             endpoint = `/api/stats/${editingItem._id}`;
             method = 'PUT';
           } else {
@@ -919,6 +919,23 @@ const AdminDashboard = () => {
                 <p><strong>Subtitle:</strong> {bannerData.subtitle}</p>
                 <p><strong>Background Color:</strong> {bannerData.bgColor || 'bg-blue-600'}</p>
                 <p><strong>Images:</strong> {bannerData.images?.length || 0} uploaded</p>
+                {(!bannerData.images || bannerData.images.length === 0) && (
+                  <div className="mt-3">
+                    <div className={`rounded-lg p-6 ${bannerData.bgColor || 'bg-blue-600'} text-white shadow-md`}>
+                      <div className="text-2xl font-bold">{bannerData.title || 'Your Banner Title'}</div>
+                      <div className="text-sm opacity-90 mt-1">{bannerData.subtitle || 'Your banner subtitle will appear here.'}</div>
+                      {bannerData.features && bannerData.features.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {bannerData.features.filter(f => f?.text).map((feature, idx) => (
+                            <span key={idx} className="px-2 py-1 text-xs rounded-full bg-white/15 border border-white/20 backdrop-blur-sm">
+                              {feature.text}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {bannerData.images && bannerData.images.length > 0 && (
                   <div className="mt-2">
                     <p><strong>Image URLs:</strong></p>
@@ -1074,8 +1091,8 @@ const AdminDashboard = () => {
 
             {activeTab === 'stats' && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {stats.map((stat, index) => (
-                  <div key={index} className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                {stats.map((stat) => (
+                  <div key={stat._id || `${stat.label}-${stat.value}`} className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg text-gray-800">{stat.value}</h3>
@@ -1101,35 +1118,6 @@ const AdminDashboard = () => {
                           <FaEdit className="text-xs" />
                           Edit
                         </button>
-                        {stat._id && (
-                          <button
-                            onClick={async () => {
-                              if (confirm('Are you sure you want to delete this statistic?')) {
-                                try {
-                                  const response = await fetch(`/api/stats/${stat._id}`, {
-                                    method: 'DELETE'
-                                  });
-                                  const result = await response.json();
-                                  
-                                  if (result.success) {
-                                    toast.success('Statistic deleted successfully');
-                                    fetchData();
-                                    triggerHomePageUpdate();
-                                  } else {
-                                    toast.error(result.error || 'Error deleting statistic');
-                                  }
-                                } catch (error) {
-                                  console.error('Error deleting statistic:', error);
-                                  toast.error('Error deleting statistic');
-                                }
-                              }
-                            }}
-                            className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1 text-sm"
-                          >
-                            <FaTrash className="text-xs" />
-                            Delete
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1492,6 +1480,26 @@ const AdminDashboard = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Live Preview when no images */}
+                  {bannerForm.images.length === 0 && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preview (shown when no images)</label>
+                      <div className={`rounded-lg p-6 ${bannerForm.bgColor || 'bg-blue-600'} text-white shadow-md`}>
+                        <div className="text-2xl font-bold">{bannerForm.title || 'Your Banner Title'}</div>
+                        <div className="text-sm opacity-90 mt-1">{bannerForm.subtitle || 'Your banner subtitle will appear here.'}</div>
+                        {bannerForm.features && bannerForm.features.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-4">
+                            {bannerForm.features.filter(f => f?.text).map((feature, idx) => (
+                              <span key={idx} className="px-2 py-1 text-xs rounded-full bg-white/15 border border-white/20 backdrop-blur-sm">
+                                {feature.text}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -1928,14 +1936,31 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
-                      <input
-                        type="text"
+                      <select
                         value={statForm.icon}
                         onChange={(e) => setStatForm(prev => ({ ...prev, icon: e.target.value }))}
-                        placeholder="e.g., FaPuzzlePiece"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
-                      />
+                      >
+                        <option value="FaPuzzlePiece">🧩 Puzzle Piece</option>
+                        <option value="FaTrophy">🏆 Trophy</option>
+                        <option value="FaStar">★ Star</option>
+                        <option value="FaCheckCircle">✓ Check Circle</option>
+                        <option value="FaClock">⏰ Clock</option>
+                        <option value="FaShieldAlt">🛡️ Shield</option>
+                        <option value="FaHandshake">🤝 Handshake</option>
+                        <option value="FaAward">🏅 Award</option>
+                        <option value="FaMedal">🥇 Medal</option>
+                        <option value="FaCrown">👑 Crown</option>
+                        <option value="FaBolt">⚡ Bolt</option>
+                        <option value="FaGlobe">🌍 Globe</option>
+                        <option value="FaCalendarAlt">📅 Calendar</option>
+                        <option value="FaCoins">🪙 Coins</option>
+                        <option value="FaFileAlt">📄 File</option>
+                        <option value="FaChartLine">📈 Chart</option>
+                        <option value="FaCalculator">🧮 Calculator</option>
+                        <option value="FaHeadset">🎧 Headset</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Icon Color</label>
@@ -1944,11 +1969,13 @@ const AdminDashboard = () => {
                         onChange={(e) => setStatForm(prev => ({ ...prev, iconColor: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="text-blue-600">Blue</option>
-                        <option value="text-green-600">Green</option>
-                        <option value="text-yellow-600">Yellow</option>
-                        <option value="text-purple-600">Purple</option>
-                        <option value="text-red-600">Red</option>
+                        <option value="text-blue-600">🔵 Blue</option>
+                        <option value="text-green-600">🟢 Green</option>
+                        <option value="text-yellow-600">🟡 Yellow</option>
+                        <option value="text-purple-600">🟣 Purple</option>
+                        <option value="text-red-600">🔴 Red</option>
+                        <option value="text-amber-600">🟠 Amber</option>
+                        <option value="text-indigo-600">🔷 Indigo</option>
                       </select>
                     </div>
                                          <div>

@@ -61,7 +61,6 @@ import {
   // Additional icons for banner features
   FaAward,
   FaCrown,
-  FaDiamond,
   FaMedal,
   FaPercent,
   FaCalendarAlt,
@@ -134,7 +133,6 @@ const iconMap = {
   // Additional icons for banner features
   FaAward,
   FaCrown,
-  FaDiamond,
   FaMedal,
   FaPercent,
   FaCalendarAlt,
@@ -214,15 +212,8 @@ const Homee = () => {
   // Define default string IDs for loan types (same as admin dashboard)
   const defaultStringIds = ["personal", "home", "business", "education", "vehicle", "gold"];
 
-  // Test icon mapping function
-  const testIconMapping = () => {
-    console.log('🏠 Testing icon mapping...');
-    const testIcons = ['FaCheckCircle', 'FaStar', 'FaShieldAlt', 'FaClock', 'FaAward', 'FaCrown'];
-    testIcons.forEach(iconName => {
-      const IconComponent = iconMap[iconName];
-      console.log(`🏠 ${iconName}:`, !!IconComponent);
-    });
-  };
+  // Optional debug flag
+  const isDebug = typeof window !== 'undefined' && window.localStorage?.getItem('DEBUG') === 'true';
 
   // Auto-scroll banner images with endless loop
   useEffect(() => {
@@ -266,8 +257,8 @@ const Homee = () => {
         setDeletedDefaults(new Set(JSON.parse(saved)));
       }
     }
-    // Test icon mapping on mount
-    testIconMapping();
+    // Minimal debug
+    if (isDebug) console.log('Homee mounted');
     
     // Check initial network status
     if (navigator.onLine === false) {
@@ -285,7 +276,7 @@ const Homee = () => {
     // Listen for storage events (when admin dashboard makes changes)
     const handleStorageChange = (e) => {
       if (e.key === 'deletedDefaults') {
-        console.log('🏠 Homee - Storage change detected:', e.key, e.newValue);
+        if (isDebug) console.log('Homee - Storage change detected:', e.key);
         // Update local state immediately
         const newDeletedDefaults = new Set(JSON.parse(e.newValue || '[]'));
         setDeletedDefaults(newDeletedDefaults);
@@ -297,12 +288,10 @@ const Homee = () => {
             if (defaultStringIds.includes(loan._id)) {
               const defaultKey = `${loan.title}-${loan.icon}`;
               const shouldShow = !newDeletedDefaults.has(defaultKey);
-              console.log(`🏠 Homee - Filtering ${loan.title}: ${shouldShow ? 'SHOW' : 'HIDE'}`);
               return shouldShow;
             }
             return true;
           });
-          console.log('🏠 Homee - Filtered loan types:', filtered.length);
           return filtered;
         });
         
@@ -310,12 +299,10 @@ const Homee = () => {
         if (updateTimeout) {
           clearTimeout(updateTimeout);
         }
-        const timeout = setTimeout(() => {
-          fetchData();
-        }, 100);
+        const timeout = setTimeout(() => { fetchData(); }, 100);
         setUpdateTimeout(timeout);
       } else if (e.key === 'bannerLastUpdate') {
-        console.log('🏠 Homee - Banner storage change detected');
+        if (isDebug) console.log('Homee - Banner storage change detected');
         // Immediately fetch banner data for faster response
         fetchBannerData();
       }
@@ -323,33 +310,31 @@ const Homee = () => {
 
     // Listen for online/offline events
     const handleOnline = () => {
-      console.log('🏠 Network is back online');
+      if (isDebug) console.log('Network is back online');
       setNetworkError(false);
       // Retry fetching data when network comes back
       fetchData();
     };
 
     const handleOffline = () => {
-      console.log('🏠 Network is offline');
+      if (isDebug) console.log('Network is offline');
       setNetworkError(true);
     };
 
     // Listen for custom events from admin dashboard
     const handleDataUpdate = () => {
-      console.log('🏠 Homee - Custom data update event received');
+      if (isDebug) console.log('Homee - Custom data update event received');
       // Debounce the update to prevent multiple rapid calls
       if (updateTimeout) {
         clearTimeout(updateTimeout);
       }
-      const timeout = setTimeout(() => {
-        fetchData();
-      }, 100);
+      const timeout = setTimeout(() => { fetchData(); }, 100);
       setUpdateTimeout(timeout);
     };
 
     // Listen for banner-specific updates
     const handleBannerUpdate = () => {
-      console.log('🏠 Homee - Banner update event received');
+      if (isDebug) console.log('Homee - Banner update event received');
       // Immediately fetch banner data for faster response
       fetchBannerData();
     };
@@ -372,22 +357,7 @@ const Homee = () => {
     };
   }, [networkError]);
 
-  // Separate effect for polling based on network status
-  useEffect(() => {
-    let pollInterval;
-    
-    if (!networkError) {
-      pollInterval = setInterval(() => {
-        fetchData();
-      }, 5000);
-    }
-
-    return () => {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-    };
-  }, [networkError]);
+  // Removed periodic polling to reduce unnecessary network and re-renders
 
   // Separate function for fetching banner data only
   const fetchBannerData = async () => {
@@ -406,18 +376,27 @@ const Homee = () => {
       });
       
       if (!bannerRes.ok) {
-        throw new Error(`HTTP error! status: ${bannerRes.status}`);
+        if (isDebug) console.warn('Banner API non-OK:', bannerRes.status);
+        // Use default banner without throwing to avoid console error noise
+        setBanner({
+          title: "Get the Best Loan Rates!",
+          subtitle: "Compare Plans & Save Money!",
+          bgColor: "bg-blue-600",
+          images: [],
+          features: [
+            { icon: <FaCheckCircle className="text-green-500" />, text: "Lowest Rates" },
+            { icon: <FaClock className="text-blue-500" />, text: "Quick Approval" },
+            { icon: <FaShieldAlt className="text-purple-500" />, text: "Trusted Lenders" }
+          ]
+        });
+        return; // exit early
       }
       
       const bannerData = await bannerRes.json();
-      // Reduced logging to prevent console spam
       
       if (bannerData.success && bannerData.data) {
         const bannerFeatures = bannerData.data.features?.map(feature => {
-          console.log('🏠 Processing banner feature:', feature);
           const IconComponent = iconMap[feature.icon];
-          console.log('🏠 Icon component found:', !!IconComponent, 'for icon:', feature.icon);
-          console.log('🏠 Color class:', feature.color);
           
           // Ensure color class is properly formatted
           let colorClass = feature.color || 'text-green-500';
@@ -426,7 +405,6 @@ const Homee = () => {
           }
           
           const finalIcon = IconComponent ? <IconComponent className={colorClass} /> : <FaCheckCircle className={colorClass} />;
-          console.log('🏠 Final icon for', feature.icon, ':', !!finalIcon);
           
           return {
             icon: finalIcon,
@@ -442,18 +420,12 @@ const Homee = () => {
           features: bannerFeatures
         };
         
-        console.log('🏠 Setting banner state:', bannerState);
-        console.log('🏠 Banner images in state:', bannerState.images);
-        console.log('🏠 Banner images count in state:', bannerState.images.length);
-        
         // Only reset currentImageIndex if the number of images changed
         setBanner(prevBanner => {
           const newBanner = bannerState;
           if (prevBanner.images?.length !== newBanner.images?.length) {
-            console.log('🏠 Image count changed, resetting currentImageIndex to 0');
             setCurrentImageIndex(0);
           } else if (newBanner.images?.length > 0 && currentImageIndex >= newBanner.images.length) {
-            console.log('🏠 Current image index out of bounds, resetting to 0');
             setCurrentImageIndex(0);
           }
           // Don't reset if images are the same, maintain current position
@@ -463,7 +435,7 @@ const Homee = () => {
         // Banner updated successfully
       }
     } catch (error) {
-      console.error('Error fetching banner data:', error);
+      if (isDebug) console.error('Error fetching banner data:', error);
       // Set default banner data on error to prevent crashes
       setBanner({
         title: "Get the Best Loan Rates!",
@@ -479,6 +451,86 @@ const Homee = () => {
     }
   };
 
+  // Fetch loan types only
+  const fetchLoanTypesData = async () => {
+    try {
+      const loanTypesRes = await fetch('/api/loan-types', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (!loanTypesRes.ok) return null;
+      const loanTypesData = await loanTypesRes.json();
+      if (loanTypesData.success && loanTypesData.data) {
+        const filteredLoanTypes = loanTypesData.data.filter(loan => {
+          if (defaultStringIds.includes(loan._id)) {
+            const defaultKey = `${loan.title}-${loan.icon}`;
+            return !deletedDefaults.has(defaultKey);
+          }
+          return true;
+        });
+        const dynamicLoanTypes = filteredLoanTypes.map((loan, idx) => {
+          const IconComponent = iconMap[loan.icon];
+          return {
+            id: loan._id || loan.title?.toLowerCase().replace(/\s+/g, '-') || `loan-${idx}`,
+            _id: loan._id,
+            icon: IconComponent ? <IconComponent className={`text-2xl ${loan.iconColor}`} /> : <FaWallet className="text-2xl text-blue-600" />,
+            title: loan.title,
+            subtitle: loan.subtitle,
+            description: loan.description,
+            typesOfLoan: loan.typesOfLoan,
+            features: loan.features,
+            bgColor: loan.bgColor,
+            iconColor: loan.iconColor,
+            link: loan.link
+          };
+        });
+        return dynamicLoanTypes;
+      }
+      return null;
+    } catch (loanError) {
+      if (isDebug) console.error('Error fetching loan types:', loanError);
+      return [
+        { icon: <FaWallet className="text-2xl text-blue-600" />, title: "Personal", description: "Loan", bgColor: "bg-blue-50" },
+        { icon: <FaHome className="text-2xl text-green-600" />, title: "Home", description: "Loan", bgColor: "bg-green-50" },
+        { icon: <FaBriefcase className="text-2xl text-amber-600" />, title: "Business", description: "Loan", bgColor: "bg-amber-50" },
+        { icon: <FaGraduationCap className="text-2xl text-purple-600" />, title: "Education", description: "Loan", bgColor: "bg-purple-50" },
+        { icon: <FaCar className="text-2xl text-red-600" />, title: "Vehicle", description: "Loan", bgColor: "bg-red-50" },
+        { icon: <FaGem className="text-2xl text-yellow-600" />, title: "Gold", description: "Loan", bgColor: "bg-yellow-50" }
+      ];
+    }
+  };
+
+  // Fetch stats only
+  const fetchStatsData = async () => {
+    try {
+      const statsRes = await fetch('/api/stats', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (!statsRes.ok) return null;
+      const statsData = await statsRes.json();
+      if (statsData.success && statsData.data) {
+        const dynamicStats = statsData.data.map(stat => {
+          const IconComponent = iconMap[stat.icon];
+          return {
+            icon: IconComponent ? <IconComponent className={`text-lg ${stat.iconColor}`} /> : <FaPuzzlePiece className="text-lg text-blue-600" />,
+            value: stat.value,
+            label: stat.label
+          };
+        });
+        return dynamicStats;
+      }
+      return null;
+    } catch (statsError) {
+      if (isDebug) console.error('Error fetching stats:', statsError);
+      return [
+        { icon: <FaPuzzlePiece className="text-lg text-blue-600" />, value: "50+", label: "Loan Options" },
+        { icon: <FaTrophy className="text-lg text-green-600" />, value: "95%", label: "Approval Rate" },
+        { icon: <FaStar className="text-lg text-yellow-600" />, value: "4.8", label: "Customer Rating" }
+      ];
+    }
+  };
+
   const fetchData = async () => {
     // Don't fetch if network is offline
     if (networkError) {
@@ -488,134 +540,21 @@ const Homee = () => {
     
     try {
       setIsUpdating(true);
-      
-      // Fetch banner data
-      await fetchBannerData();
+      // Fetch banner, loan types and stats in parallel
+      const [loanTypesResult, statsResult] = await Promise.all([
+        fetchLoanTypesData().catch(() => null),
+        fetchStatsData().catch(() => null),
+        // banner fetch runs independently; don't block others
+        fetchBannerData().catch(() => null)
+      ]);
 
-      // Fetch loan types data
-      try {
-        const loanTypesRes = await fetch('/api/loan-types', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (loanTypesRes.ok) {
-          const loanTypesData = await loanTypesRes.json();
-          console.log('🏠 Homee - Fetched loan types:', loanTypesData);
-          if (loanTypesData.success && loanTypesData.data) {
-            // Filter out deleted default items
-            const filteredLoanTypes = loanTypesData.data.filter(loan => {
-              // Check if this is a default item (has string _id)
-              if (defaultStringIds.includes(loan._id)) {
-                // This is a default item, check if it's been deleted
-                const defaultKey = `${loan.title}-${loan.icon}`;
-                return !deletedDefaults.has(defaultKey);
-              }
-              // This is a database item, always show it
-              return true;
-            });
-
-            const dynamicLoanTypes = filteredLoanTypes.map((loan, idx) => {
-              const IconComponent = iconMap[loan.icon];
-              return {
-                id: loan._id || loan.title?.toLowerCase().replace(/\s+/g, '-') || `loan-${idx}`,
-                _id: loan._id, // Store original _id for filtering
-                icon: IconComponent ? <IconComponent className={`text-2xl ${loan.iconColor}`} /> : <FaWallet className="text-2xl text-blue-600" />,
-                title: loan.title,
-                subtitle: loan.subtitle,
-                description: loan.description,
-                typesOfLoan: loan.typesOfLoan,
-                features: loan.features,
-                bgColor: loan.bgColor,
-                iconColor: loan.iconColor,
-                link: loan.link
-              };
-            });
-            console.log('🏠 Homee - Processed loan types:', dynamicLoanTypes);
-            setLoanTypes(dynamicLoanTypes);
-          }
-        }
-      } catch (loanError) {
-        console.error('Error fetching loan types:', loanError);
-        // Set default loan types on network error
-        setLoanTypes([
-          { 
-            icon: <FaWallet className="text-2xl text-blue-600" />, 
-            title: "Personal", 
-            description: "Loan",
-            bgColor: "bg-blue-50"
-          },
-          { 
-            icon: <FaHome className="text-2xl text-green-600" />, 
-            title: "Home", 
-            description: "Loan",
-            bgColor: "bg-green-50"
-          },
-          { 
-            icon: <FaBriefcase className="text-2xl text-amber-600" />, 
-            title: "Business", 
-            description: "Loan",
-            bgColor: "bg-amber-50"
-          },
-          { 
-            icon: <FaGraduationCap className="text-2xl text-purple-600" />, 
-            title: "Education", 
-            description: "Loan",
-            bgColor: "bg-purple-50"
-          },
-          { 
-            icon: <FaCar className="text-2xl text-red-600" />, 
-            title: "Vehicle", 
-            description: "Loan",
-            bgColor: "bg-red-50"
-          },
-          { 
-            icon: <FaGem className="text-2xl text-yellow-600" />, 
-            title: "Gold", 
-            description: "Loan",
-            bgColor: "bg-yellow-50"
-          }
-        ]);
-      }
-
-      // Fetch stats data
-      try {
-        const statsRes = await fetch('/api/stats', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          if (statsData.success && statsData.data) {
-            const dynamicStats = statsData.data.map(stat => {
-              const IconComponent = iconMap[stat.icon];
-              return {
-                icon: IconComponent ? <IconComponent className={`text-lg ${stat.iconColor}`} /> : <FaPuzzlePiece className="text-lg text-blue-600" />,
-                value: stat.value,
-                label: stat.label
-              };
-            });
-            setStats(dynamicStats);
-          }
-        }
-      } catch (statsError) {
-        console.error('Error fetching stats:', statsError);
-        // Set default stats on network error
-        setStats([
-          { icon: <FaPuzzlePiece className="text-lg text-blue-600" />, value: "50+", label: "Loan Options" },
-          { icon: <FaTrophy className="text-lg text-green-600" />, value: "95%", label: "Approval Rate" },
-          { icon: <FaStar className="text-lg text-yellow-600" />, value: "4.8", label: "Customer Rating" }
-        ]);
-      }
+      if (loanTypesResult) setLoanTypes(loanTypesResult);
+      if (statsResult) setStats(statsResult);
 
       setLastUpdate(Date.now());
       setNetworkError(false); // Clear network error on successful fetch
     } catch (error) {
-      console.error('Error fetching data:', error);
+      if (isDebug) console.error('Error fetching data:', error);
       setNetworkError(true); // Set network error flag
     } finally {
       setLoading(false);
@@ -681,25 +620,27 @@ const Homee = () => {
       </div>
     )}
     
-    {/* Content Overlay - Hidden on mobile, shown on sm+ */}
-    <div className="relative z-10 h-full items-center px-4 sm:px-6 md:px-8 hidden sm:flex">
-      <div className="text-white">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1">
-          {banner.title}
-        </h1>
-        <p className="text-sm sm:text-base md:text-lg mb-3 opacity-90">
-          {banner.subtitle}
-        </p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {banner.features.map((feature, idx) => (
-            <div key={idx} className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm">
-              {feature.icon}
-              <span>{feature.text}</span>
-            </div>
-          ))}
+    {/* Content Overlay - show only when no images */}
+    {(!banner.images || banner.images.length === 0) && (
+      <div className="relative z-10 h-full items-center px-4 sm:px-6 md:px-8 flex">
+        <div className="text-white">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1">
+            {banner.title}
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg mb-3 opacity-90">
+            {banner.subtitle}
+          </p>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {banner.features.map((feature, idx) => (
+              <div key={idx} className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm">
+                {feature.icon}
+                <span>{feature.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    )}
     </div>
     </div>
 

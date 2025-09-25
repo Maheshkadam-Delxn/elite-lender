@@ -17,7 +17,6 @@ const iconMap = {
   FaAward,
   FaGem,
   FaCrown,
-  FaDiamond,
   FaMedal
 };
 

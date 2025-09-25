@@ -41,9 +41,14 @@ const LoanTypeDetail = () => {
     name: "",
     email: "",
     mobile: "",
-    loanType: "",
     loanAmount: "",
-    message: ""
+    city: "",
+    pincode: "",
+    salaryMonthly: "",
+    serviceSector: "",
+    companyName: "",
+    address: "",
+    loanType: ""
   });
 
   // Icon mapping
@@ -152,33 +157,62 @@ const LoanTypeDetail = () => {
       return;
     }
 
+    if (!formData.loanAmount) {
+      toast.error("Please enter required loan amount");
+      return;
+    }
+
+    if (!formData.city) {
+      toast.error("Please enter your city");
+      return;
+    }
+
+    if (!/^\d{6}$/.test(formData.pincode)) {
+      toast.error("Please enter a valid 6-digit pincode");
+      return;
+    }
+
+    if (!/^\d+(?:,?\d+)*(?:\.\d+)?$/.test(formData.salaryMonthly)) {
+      toast.error("Please enter a valid monthly salary amount");
+      return;
+    }
+
+    if (!formData.serviceSector) {
+      toast.error("Please enter your service sector");
+      return;
+    }
+
     try {
-      const response = await fetch('/api/form-data', {
+      const response = await fetch('/api/loan-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          insuranceType: formData.loanType // Using existing API structure
+          ...formData
         }),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success("Thank you! We'll get back to you soon.");
+        toast.success("Inquiry submitted successfully.");
         setFormData({
           name: "",
           email: "",
           mobile: "",
-          loanType: loanData?.title || "",
           loanAmount: "",
-          message: ""
+          city: "",
+          pincode: "",
+          salaryMonthly: "",
+          serviceSector: "",
+          companyName: "",
+          address: "",
+          loanType: loanData?.title || ""
         });
         setShowEnquiryForm(false);
       } else {
-        toast.error("Something went wrong. Please try again.");
+        toast.error(data.error || "Something went wrong. Please try again.");
       }
     } catch (error) {
-      toast.error("Error submitting form. Please try again.");
+      toast.error(error?.message || "Error submitting form. Please try again.");
     }
   };
 
@@ -348,10 +382,229 @@ const LoanTypeDetail = () => {
                   ))}
                 </ul>
               </motion.div>
+
+              {/* Inquiry Form Button */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="bg-white rounded-lg shadow-sm p-6"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Ready to Apply?</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Get started with your loan application by filling out our inquiry form.
+                </p>
+                <button
+                  onClick={() => setShowEnquiryForm(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <FaFileAlt className="text-sm" />
+                  <span>Start Application</span>
+                </button>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Inquiry Form Modal */}
+      {showEnquiryForm && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowEnquiryForm(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Loan Inquiry Form</h2>
+                <button
+                  onClick={() => setShowEnquiryForm(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your email address"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
+                    Mobile Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="mobile"
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your 10-digit mobile number"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="loanAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                    Required Loan Amount (₹) *
+                  </label>
+                  <input
+                    type="text"  
+                    id="loanAmount"
+                    name="loanAmount"
+                    value={formData.loanAmount} 
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., 500000"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                      City *
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter your city"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-1">
+                      Pincode *
+                    </label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      name="pincode"
+                      value={formData.pincode}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="6-digit pincode"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="salaryMonthly" className="block text-sm font-medium text-gray-700 mb-1">
+                    Salary Monthly (₹) *
+                  </label>
+                  <input
+                    type="text"
+                    id="salaryMonthly"
+                    name="salaryMonthly"
+                    value={formData.salaryMonthly}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., 50000"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="serviceSector" className="block text-sm font-medium text-gray-700 mb-1">
+                      Service Sector *
+                    </label>
+                    <input
+                      type="text"
+                      id="serviceSector"
+                      name="serviceSector"
+                      value={formData.serviceSector}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., IT, Banking, Govt, Self-Employed"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Name
+                    </label>
+                    <input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Your company or business name"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </label>
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleFormChange}
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="House No, Street, Area"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                  Submit Inquiry
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

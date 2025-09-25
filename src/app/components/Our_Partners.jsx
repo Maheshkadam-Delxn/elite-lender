@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const OurPartners = () => {
@@ -17,6 +17,7 @@ const OurPartners = () => {
   ];
 
   const scrollContainerRef = useRef(null);
+  const [failedPartnerIds, setFailedPartnerIds] = useState(new Set());
   const scrollSpeed = 1.5;
 
   useEffect(() => {
@@ -75,20 +76,26 @@ const OurPartners = () => {
                 key={`${partner.id}-${index}`}
                 className="flex-shrink-0 mx-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
               >
-                <div className="relative w-32 h-16 sm:w-44 sm:h-22">
-                  <Image
-                    src={partner.img}
-                    alt={partner.name}
-                    fill
-                    className="object-cover" // Changed from contain to cover
-                    quality={100}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    onError={(e) => {
-                      console.error(`Failed to load partner logo: ${partner.name}`);
-                      e.target.parentElement.style.display = 'none';
-                    }}
-                  />
-                </div>
+                {failedPartnerIds.has(partner.id) ? (
+                  <div className="relative w-32 h-16 sm:w-44 sm:h-20 flex items-center justify-center text-xs text-gray-400 px-2">
+                    {partner.name}
+                  </div>
+                ) : (
+                  <div className="relative w-32 h-16 sm:w-44 sm:h-20">
+                    <Image
+                      src={partner.img}
+                      alt={partner.name}
+                      fill
+                      className="object-contain"
+                      quality={90}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      onError={() => {
+                        setFailedPartnerIds(prev => new Set(prev).add(partner.id));
+                      }}
+                      priority={index < 3}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -33,7 +33,7 @@ const Features = () => {
     {
       icon: <FaUsers className="text-2xl" />,
       title: "Happy Customers",
-      value: 100000,
+      value: 10000,
       suffix: "+",
       description: "Trusted by families",
       color: "from-green-500 to-green-600",

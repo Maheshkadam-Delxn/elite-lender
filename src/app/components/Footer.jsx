@@ -3,7 +3,7 @@ import { FaXTwitter, FaLinkedinIn, FaFacebook, FaInstagram, FaYoutube } from "re
 import { FaPhone, FaRegEnvelope, FaRegClock, FaMapMarkerAlt } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
-import FooterLogo from "../../../public/insurance/logo.png";
+import FooterLogo2 from "../../../public/insurance/logo2.png";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -19,19 +19,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* Brand info and socials */}
           <div className="md:col-span-1">
-            <Link href="#" onClick={scrollToTop} className="flex items-center space-x-3 mb-4 cursor-pointer">
-              <Image
-                src={FooterLogo}
-                alt="Elite Finsols Logo"
-                width={60}
-                height={60}
-                className="rounded-full"
-              />
-              <div>
-                <h3 className="text-2xl font-bold text-blue-400">
-                  Elite <span className="text-purple-400">Financial</span> Solution
-                </h3>
-                <p className="text-gray-400 text-sm">Your Trusted Financial Partner</p>
+            <Link href="#" onClick={scrollToTop} className="flex items-center mb-4 cursor-pointer">
+              <div className="relative w-48 sm:w-64 md:w-96 lg:w-[28rem] xl:w-[32rem] h-16 sm:h-20 md:h-28 lg:h-32 xl:h-36">
+                <Image
+                  src={FooterLogo2}
+                  alt="Elite Finsols Logo"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 640px) 12rem, (max-width: 768px) 16rem, (max-width: 1024px) 24rem, (max-width: 1280px) 28rem, 32rem"
+                  priority
+                />
               </div>
             </Link>
             <p className="mb-4">
@@ -113,6 +110,11 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-center items-center">
             <p className="mb-4 md:mb-0">
               © {new Date().getFullYear()} Elite Finsols. All rights reserved
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row justify-center items-center">
+            <p className="mb-4 md:mb-0">
+            All logos and trademarks are the property of their respective owners. We are not affiliated with or endorsed by the banks shown.
             </p>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center">

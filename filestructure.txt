@@ -41,6 +41,7 @@
     |-- favicon.ico
     |-- insurance
         |-- logo.png
+        |-- logo2.png
     |-- providers
         |-- axis-bank.png
         |-- boi-bank.png
@@ -103,6 +104,9 @@
             |-- 1754480554639_EITE_BANNER_2.png
             |-- 1754480554694_ELITE_BANNER_3.png
             |-- 1754480554746_ELITE_BANNER_1.png
+            |-- 1757313892879_EITE_BANNER_2.png
+            |-- 1757313892943_ELITE_BANNER_3.png
+            |-- 1757313892992_ELITE_BANNER_1.png
 |-- README.md
 |-- setup.js
 |-- src
@@ -133,6 +137,8 @@
                 |-- route.js
             |-- contact
                 |-- route.js
+            |-- loan-inquiry
+                |-- route.js
             |-- loan-types
                 |-- route.js
                 |-- [id]
@@ -146,11 +152,11 @@
                 |-- route.js
                 |-- [id]
                     |-- route.js
+            |-- test
             |-- upload-image
                 |-- route.js
         |-- components
             |-- AnimatedHeader.jsx
-            |-- CoreValue.jsx
             |-- Customers.jsx
             |-- Features.jsx
             |-- Footer.jsx

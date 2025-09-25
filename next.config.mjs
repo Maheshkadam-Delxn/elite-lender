@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: 'build',
+  webpack: (config) => {
+    // Re-enable webpack caching for faster incremental rebuilds in dev
+    config.cache = true;
+    return config;
+  },
   images: {
     domains: ['images.unsplash.com'],
     // OR use remotePatterns for more control:
