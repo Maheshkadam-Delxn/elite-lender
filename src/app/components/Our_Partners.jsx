@@ -5,7 +5,6 @@ import Image from "next/image";
 
 const OurPartners = () => {
   const partners = [
-    { id: 1, img: "/providers/axis-bank.png", name: "Axis Bank" },
     { id: 2, img: "/providers/indusind-bank.png", name: "IndusInd Bank" },
     { id: 3, img: "/providers/boi-bank.png", name: "Bank of India" },
     { id: 4, img: "/providers/kotak-mahindra-bank.png", name: "Kotak Mahindra Bank" },
@@ -77,16 +76,14 @@ const OurPartners = () => {
                 className="flex-shrink-0 mx-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
               >
                 {failedPartnerIds.has(partner.id) ? (
-                  <div className="relative w-32 h-16 sm:w-44 sm:h-20 flex items-center justify-center text-xs text-gray-400 px-2">
-                    {partner.name}
-                  </div>
+                  <div className="relative w-32 h-16 sm:w-44 sm:h-20 bg-gray-100" />
                 ) : (
                   <div className="relative w-32 h-16 sm:w-44 sm:h-20">
                     <Image
                       src={partner.img}
                       alt={partner.name}
                       fill
-                      className="object-contain"
+                      className="object-cover object-center"
                       quality={90}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       onError={() => {
