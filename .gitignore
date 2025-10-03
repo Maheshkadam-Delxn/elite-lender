@@ -39,3 +39,33 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ADDED FOR SECURITY - Secret files
+*secret*
+*token*
+*password*
+*credential*
+*oauth*
+google-oauth*.json
+*-auth*.json
+
+# ADDED FOR SECURITY - Certificate files
+*.key
+*.crt
+*.csr
+
+# ADDED - IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ADDED - Temporary files
+tmp/
+temp/
+*.tmp
+
+# ADDED - Build outputs
+dist/
+*.tar.gz
+*.zip
