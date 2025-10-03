@@ -89,7 +89,7 @@ export async function POST(request) {
         }
       } catch (sheetMetaErr) {
         console.error('Sheets meta error:', sheetMetaErr?.message);
-        return new Response(JSON.stringify({ success: false, error: 'Unable to access spreadsheet. Verify GOOGLE_SHEETS_SPREADSHEET_ID and that the sheet is shared with the service account.' }), {
+        return new Response(JSON.stringify({ success: false, error: `Unable to access spreadsheet. Verify GOOGLE_SHEETS_SPREADSHEET_ID (${spreadsheetId}) and share it with the service account email (${clientEmail}) as Editor.` }), {
           status: 502,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -122,7 +122,7 @@ export async function POST(request) {
         });
       } catch (appendErr) {
         console.error('Append error:', appendErr?.message);
-        return new Response(JSON.stringify({ success: false, error: 'Failed to append row to sheet. Check sheet permissions and name.', details: appendErr?.message }), {
+        return new Response(JSON.stringify({ success: false, error: `Failed to append row to sheet "${sheetName}". Ensure spreadsheet (${spreadsheetId}) is shared with ${clientEmail} as Editor.`, details: appendErr?.message }), {
           status: 502,
           headers: { 'Content-Type': 'application/json' }
         });

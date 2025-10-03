@@ -39,6 +39,7 @@
     |-- data
         |-- loan-types.json
     |-- favicon.ico
+    |-- globals.css
     |-- insurance
         |-- logo.png
         |-- logo2.png
@@ -53,7 +54,6 @@
         |-- sbi-bank.png
         |-- union-bank.png
         |-- yes-bank-logo.png
-    |-- styles.css
     |-- uploads
         |-- banners
             |-- 1754288174382_self-sign.jpg
@@ -144,6 +144,9 @@
                 |-- [id]
                     |-- route.js
             |-- migrate-loan-types
+            |-- quickloan
+                |-- submit
+                    |-- route.js
             |-- setup-admin
                 |-- route.js
             |-- setup-data
@@ -153,6 +156,7 @@
                 |-- [id]
                     |-- route.js
             |-- test
+                |-- route.js
             |-- upload-image
                 |-- route.js
         |-- components
@@ -169,9 +173,13 @@
             |-- Why_Choose.jsx
         |-- globals.css
         |-- layout.js
+        |-- quickloan
+            |-- layout.js
+            |-- page.jsx
     |-- data
         |-- loan-types.json
     |-- lib
+        |-- google-auth.js
         |-- mongodb.js
     |-- models
         |-- Admin.js

@@ -98,7 +98,7 @@ const Header = () => {
   const handleCloseModal = () => setShowLoginModal(false);
 
   return (
-    <header className="w-full sticky top-0 z-20 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.1)] border-b border-gray-200">
+    <header className="w-full sticky top-0 z-20 bg-gray-900 text-gray-300 shadow-[0_4px_10px_rgba(0,0,0,0.2)] border-b border-gray-800">
       {showLoginModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 p-4">
           <motion.div
@@ -156,15 +156,15 @@ const Header = () => {
             />
           </div>
           <div className="flex flex-col items-start justify-center">
-            <h1 className="text-xl md:text-2xl font-bold text-blue-800">Elite Financial Solutions</h1>
-            <p className="text-xs md:text-sm text-gray-600">Your Trust, Our Experties</p>
+            <h1 className="text-xl md:text-2xl font-bold text-white">Elite Financial Solutions</h1>
+            <p className="text-xs md:text-sm text-gray-400">Your Trust, Our Experties</p>
           </div>
         </Link>
 
         {/* Hamburger Menu Button */}
         <button
           onClick={toggleMenu}
-          className="block lg:hidden text-black focus:outline-none p-2 mr-1"
+          className="block lg:hidden text-white focus:outline-none p-2 mr-1"
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
           {isMenuOpen ? (
@@ -178,9 +178,16 @@ const Header = () => {
         <nav className="hidden lg:flex items-center gap-6">
           <Link
             href="/"
-            className="relative py-2 text-black hover:text-blue-700 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-700 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+            className="relative py-2 text-gray-300 hover:text-blue-400 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-400 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
           >
             Home
+          </Link>
+
+          <Link
+            href="/quickloan"
+            className="relative py-2 text-gray-300 hover:text-blue-400 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-400 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+          >
+            Quick Loan
           </Link>
 
           {/* Products Dropdown */}
@@ -190,13 +197,13 @@ const Header = () => {
             onMouseLeave={() => setIsDropdownOpen(false)}
             ref={dropdownRef}
           >
-            <button className="relative py-2 text-black hover:text-blue-700 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-700 after:w-0 after:transition-all after:duration-300 hover:after:w-full">
+            <button className="relative py-2 text-gray-300 hover:text-blue-400 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-400 after:w-0 after:transition-all after:duration-300 hover:after:w-full">
               Products
             </button>
             <AnimatePresence>
               {isDropdownOpen && (
                 <motion.div
-                  className="absolute top-full left-0 mt-1 bg-white shadow-lg border rounded-md py-2 w-56 z-10"
+                  className="absolute top-full left-0 mt-1 bg-gray-900 text-gray-300 shadow-lg border border-gray-800 rounded-md py-2 w-56 z-10"
                   variants={dropdownVariants}
                   initial="hidden"
                   animate="visible"
@@ -207,7 +214,7 @@ const Header = () => {
                       key={product.href}
                       href={product.href}
                       onClick={() => setIsDropdownOpen(false)}
-                      className="block px-4 py-2 text-black hover:bg-gray-50 transition-colors text-sm"
+                      className="block px-4 py-2 hover:bg-gray-800 transition-colors text-sm"
                     >
                       <div className="flex items-center">
                         {product.icon}
@@ -222,14 +229,14 @@ const Header = () => {
 
           <Link
             href="/about-us"
-            className="relative py-2 text-black hover:text-blue-700 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-700 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+            className="relative py-2 text-gray-300 hover:text-blue-400 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-400 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
           >
             About Us
           </Link>
 
           <Link
             href="/contact"
-            className="relative py-2 text-black hover:text-blue-700 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-700 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+            className="relative py-2 text-gray-300 hover:text-blue-400 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-400 after:w-0 after:transition-all after:duration-300 hover:after:w-full"
           >
             Contact Us
           </Link>
@@ -240,7 +247,7 @@ const Header = () => {
           {isMenuOpen && (
             <motion.div
               ref={menuRef}
-              className="fixed top-0 right-0 w-[300px] max-w-[85vw] h-full bg-white shadow-2xl z-50 flex flex-col pr-5 pl-5 pt-6 pb-6 overflow-y-auto"
+              className="fixed top-0 right-0 w-[300px] max-w-[85vw] h-full bg-gray-900 text-gray-300 shadow-2xl z-50 flex flex-col pr-5 pl-5 pt-6 pb-6 overflow-y-auto"
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -258,7 +265,7 @@ const Header = () => {
                     />
                   </div>
                 </Link>
-                <button onClick={toggleMenu} className="text-2xl">
+                <button onClick={toggleMenu} className="text-2xl text-white">
                   <RxCross1 />
                 </button>
               </div>
@@ -267,12 +274,12 @@ const Header = () => {
                 <Link
                   href="/"
                   onClick={() => setIsMenuOpen(false)}
-                  className="py-3 border-b border-gray-200"
+                  className="py-3 border-b border-gray-800"
                 >
                   Home
                 </Link>
 
-                <div className="border-b border-gray-200">
+                <div className="border-b border-gray-800">
                   <button
                     onClick={toggleSubmenu}
                     className="w-full flex justify-between items-center py-3"
@@ -289,7 +296,7 @@ const Header = () => {
                           key={product.href}
                           href={product.href}
                           onClick={() => setIsMenuOpen(false)}
-                          className="block py-2 text-gray-700 hover:text-blue-600"
+                          className="block py-2 hover:text-blue-400"
                         >
                           <div className="flex items-center">
                             {product.icon}
@@ -304,15 +311,23 @@ const Header = () => {
                 <Link
                   href="/about-us"
                   onClick={() => setIsMenuOpen(false)}
-                  className="py-3 border-b border-gray-200"
+                  className="py-3 border-b border-gray-800"
                 >
                   About Us
                 </Link>
 
                 <Link
+                  href="/quickloan"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="py-3 border-b border-gray-800"
+                >
+                  Quick Loan
+                </Link>
+
+                <Link
                   href="/contact"
                   onClick={() => setIsMenuOpen(false)}
-                  className="py-3 border-b border-gray-200"
+                  className="py-3 border-b border-gray-800"
                 >
                   Contact Us
                 </Link>
