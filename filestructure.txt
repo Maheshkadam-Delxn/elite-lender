@@ -2,6 +2,8 @@
 |-- .gitignore
 |-- .htaccess
 |-- DYNAMIC_SETUP.md
+|-- google-oauth-token.json
+|-- GOOGLE_SHEETS_SETUP.md
 |-- jsconfig.json
 |-- next.config.mjs
 |-- package-lock.json
@@ -137,6 +139,7 @@
                 |-- route.js
             |-- contact
                 |-- route.js
+            |-- contact-diagnostic
             |-- loan-inquiry
                 |-- route.js
             |-- loan-types
@@ -145,6 +148,7 @@
                     |-- route.js
             |-- migrate-loan-types
             |-- quickloan
+                |-- clear
                 |-- submit
                     |-- route.js
             |-- setup-admin
@@ -157,6 +161,7 @@
                     |-- route.js
             |-- test
                 |-- route.js
+            |-- test-sheets
             |-- upload-image
                 |-- route.js
         |-- components
@@ -180,6 +185,7 @@
         |-- loan-types.json
     |-- lib
         |-- google-auth.js
+        |-- google-sheets.js
         |-- mongodb.js
     |-- models
         |-- Admin.js
