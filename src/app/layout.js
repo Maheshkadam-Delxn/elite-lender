@@ -16,16 +16,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-          title: "Elite Finsols",
+  title: "Elite Finsols",
   description: "A trusted loan platform for all your loan needs.",
   icons: {
-    icon: "/icons/sansar.png", // Favicon path is now in metadata
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", type: "image/x-icon" }
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+      </head>
       <body
         className={`${geistSans.className} bg-gradient-to-r from-[#CEFCFF] via-[#D5F5F9] to-[#FFFFFF]`}
         style={{
