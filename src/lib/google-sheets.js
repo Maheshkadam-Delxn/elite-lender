@@ -1,19 +1,36 @@
 import { google } from 'googleapis';
-import { auth } from './google-auth.js';
-import fs from 'fs';
-import path from 'path';
-
-// Load tokens from file
-const tokenPath = path.join(process.cwd(), 'google-oauth-token.json');
 
 export async function initializeGoogleAuth() {
   try {
-    if (fs.existsSync(tokenPath)) {
-      const tokens = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
-      auth.setCredentials(tokens);
+    // Check if we're in production and have service account credentials
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+      // Use service account authentication for production
+      const auth = new google.auth.GoogleAuth({
+        credentials: {
+          client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        },
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/drive.file'
+        ]
+      });
       return auth;
     } else {
-      throw new Error('Google OAuth tokens not found');
+      // Fallback to OAuth2 for development (if token file exists)
+      const { auth } = await import('./google-auth.js');
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const tokenPath = path.join(process.cwd(), 'google-oauth-token.json');
+      
+      if (fs.existsSync(tokenPath)) {
+        const tokens = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+        auth.setCredentials(tokens);
+        return auth;
+      } else {
+        throw new Error('Google authentication not configured. Please set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY environment variables for production, or ensure google-oauth-token.json exists for development.');
+      }
     }
   } catch (error) {
     console.error('Error initializing Google Auth:', error);
