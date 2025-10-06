@@ -216,7 +216,8 @@ export async function POST(req) {
     const targetFolderId = manualFolderId;
     console.log('📁 Using folder ID:', targetFolderId);
 
-    // Verify the folder exists and is accessible
+    // Verify the folder exists and is accessible; if not, proceed without uploads
+    let driveAvailable = true;
     try {
       console.log('🔍 Verifying folder access...');
       await drive.files.get({
@@ -226,15 +227,8 @@ export async function POST(req) {
       });
       console.log('✅ Folder is accessible');
     } catch (folderError) {
-      console.error('❌ Folder is not accessible:', folderError.message);
-      return NextResponse.json({ 
-        success: false, 
-        error: `The folder (${targetFolderId}) is not accessible. Please check:\n` +
-        `1. The folder exists in Google Drive (My Drive or Shared Drive)\n` +
-        `2. The authorized account ${authorizedEmail || (usingServiceAccount ? serviceAccountEmail : '(unknown)')} has at least Editor access\n` +
-        `3. The folder ID is correct\n` +
-        `4. If it is a Shared Drive, ensure membership and try again` 
-      }, { status: 400 });
+      driveAvailable = false;
+      console.warn('⚠️ Drive folder not accessible, proceeding without file uploads:', folderError.message);
     }
 
     // Upload function for files
@@ -296,31 +290,37 @@ export async function POST(req) {
       }
     }
 
-    // Upload all files in parallel
+    // Upload all files in parallel (optional). If uploads fail, continue with empty links
     console.log('🚀 Starting file uploads...');
     let aadharLink = '', panLink = '', salaryLink = '', bankLink = '';
-    
-    try {
-      [aadharLink, panLink, salaryLink, bankLink] = await Promise.all([
-        uploadToDrive(aadhar, 'Aadhar'),
-        uploadToDrive(pan, 'PAN'),
-        uploadToDrive(salarySlips, 'SalarySlips'),
-        uploadToDrive(bankStatement, 'BankStatement'),
-      ]);
-      console.log('✅ All files uploaded successfully');
-    } catch (uploadError) {
-      console.error('💥 File upload failed:', uploadError);
-      return NextResponse.json({ 
-        success: false, 
-        error: uploadError.message 
-      }, { status: 500 });
+    if (driveAvailable) {
+      try {
+        [aadharLink, panLink, salaryLink, bankLink] = await Promise.all([
+          uploadToDrive(aadhar, 'Aadhar'),
+          uploadToDrive(pan, 'PAN'),
+          uploadToDrive(salarySlips, 'SalarySlips'),
+          uploadToDrive(bankStatement, 'BankStatement'),
+        ]);
+        console.log('✅ All files uploaded successfully');
+      } catch (uploadError) {
+        console.error('💥 File upload failed (continuing without file links):', uploadError);
+        aadharLink = aadharLink || '';
+        panLink = panLink || '';
+        salaryLink = salaryLink || '';
+        bankLink = bankLink || '';
+      }
+    } else {
+      aadharLink = '';
+      panLink = '';
+      salaryLink = '';
+      bankLink = '';
     }
 
     // Prepare data for Google Sheets
     console.log('📊 Preparing data for Google Sheets...');
     const now = new Date();
     const values = [[
-      now.toLocaleString('en-IN'),
+      now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       data.customerName,
       data.fatherName,
       data.motherName,
