@@ -6,6 +6,14 @@ export default function QuickLoanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showUpload, setShowUpload] = useState(true)
+  const [selectedFiles, setSelectedFiles] = useState({ aadhar: null, pan: null, salarySlips: null, bankStatement: null })
+  const onFileChange = (key, fileList) => {
+    try {
+      const name = fileList && fileList.length > 0 ? fileList[0].name : null
+      setSelectedFiles((prev) => ({ ...prev, [key]: name }))
+    } catch (_) {}
+  }
   const formRef = useRef(null)
   const uploadSectionRef = useRef(null)
 
@@ -89,30 +97,14 @@ export default function QuickLoanPage() {
         if (oauthPopupRef.current && !oauthPopupRef.current.closed) {
           try { oauthPopupRef.current.close() } catch (_) {}
         }
-        if (formRef.current && !autoSubmitRef.current) {
-          const aadhar = formRef.current.elements.namedItem('aadhar')
-          const pan = formRef.current.elements.namedItem('pan')
-          const salarySlips = formRef.current.elements.namedItem('salarySlips')
-          const bankStatement = formRef.current.elements.namedItem('bankStatement')
-
-          const hasAllFiles =
-            aadhar && aadhar.files && aadhar.files.length > 0 &&
-            pan && pan.files && pan.files.length > 0 &&
-            salarySlips && salarySlips.files && salarySlips.files.length > 0 &&
-            bankStatement && bankStatement.files && bankStatement.files.length > 0
-
-          if (hasAllFiles) {
-            autoSubmitRef.current = true
-            formRef.current.requestSubmit()
-          } else {
-            setSubmitStatus({
-              type: 'error',
-              message: 'Google auth complete. Please attach all required documents to continue.'
-            })
-            if (uploadSectionRef.current) {
-              uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
-          }
+        // After OAuth, show the upload section and prompt to attach files
+        setShowUpload(true)
+        setSubmitStatus({
+          type: 'error',
+          message: 'Google auth complete. Please attach all required documents to continue.'
+        })
+        if (uploadSectionRef.current) {
+          uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
       }
     }
@@ -126,6 +118,34 @@ export default function QuickLoanPage() {
     setSubmitStatus(null)
 
     const formData = new FormData(event.target)
+
+    // After OAuth, require all files before allowing submission
+    if (showUpload) {
+      const form = formRef.current
+      const aadhar = form?.elements?.namedItem('aadhar')
+      const pan = form?.elements?.namedItem('pan')
+      const salarySlips = form?.elements?.namedItem('salarySlips')
+      const bankStatement = form?.elements?.namedItem('bankStatement')
+
+      const missingFiles = !(
+        aadhar && aadhar.files && aadhar.files.length > 0 &&
+        pan && pan.files && pan.files.length > 0 &&
+        salarySlips && salarySlips.files && salarySlips.files.length > 0 &&
+        bankStatement && bankStatement.files && bankStatement.files.length > 0
+      )
+
+      if (missingFiles) {
+        setIsSubmitting(false)
+        setSubmitStatus({
+          type: 'error',
+          message: 'Please attach all required documents before submitting.'
+        })
+        if (uploadSectionRef.current) {
+          uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+        return
+      }
+    }
 
     try {
       const response = await fetch('/api/quickloan/submit', {
@@ -521,6 +541,7 @@ export default function QuickLoanPage() {
           </div>
 
           {/* Upload Documents */}
+          {showUpload && (
           <div ref={uploadSectionRef} className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Upload Documents</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -531,6 +552,7 @@ export default function QuickLoanPage() {
                   type="file" 
                   accept="image/*,application/pdf" 
                   required
+                  onChange={(e) => onFileChange('aadhar', e.target.files)}
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                 />
               </label>
@@ -541,6 +563,7 @@ export default function QuickLoanPage() {
                   type="file" 
                   accept="image/*,application/pdf" 
                   required
+                  onChange={(e) => onFileChange('pan', e.target.files)}
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                 />
               </label>
@@ -551,6 +574,7 @@ export default function QuickLoanPage() {
                   type="file" 
                   accept="image/*,application/pdf" 
                   required
+                  onChange={(e) => onFileChange('salarySlips', e.target.files)}
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                 />
               </label>
@@ -561,11 +585,25 @@ export default function QuickLoanPage() {
                   type="file" 
                   accept="image/*,application/pdf" 
                   required
+                  onChange={(e) => onFileChange('bankStatement', e.target.files)}
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                 />
               </label>
             </div>
           </div>
+          )}
+
+          {showUpload && (
+          <div className="mb-4 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-700">
+            <div className="font-semibold mb-1">Selected Documents</div>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Aadhar: {selectedFiles.aadhar || 'Not selected'}</li>
+              <li>PAN: {selectedFiles.pan || 'Not selected'}</li>
+              <li>Salary Slips: {selectedFiles.salarySlips || 'Not selected'}</li>
+              <li>Bank Statement: {selectedFiles.bankStatement || 'Not selected'}</li>
+            </ul>
+          </div>
+          )}
 
           <div className="flex justify-center">
             <button 

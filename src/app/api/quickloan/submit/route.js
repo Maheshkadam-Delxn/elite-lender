@@ -63,84 +63,51 @@ export async function POST(req) {
   try {
     console.log('🔍 Starting API request...');
 
-    // Prefer service account in production if credentials are available
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const servicePrivateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+    // Use OAuth (previous behavior)
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
+      }, { status: 400 });
+    }
 
-    let auth;
+    // Load tokens (from disk) if not already in memory
+    if (!oauthTokens) {
+      await loadTokensFromDisk();
+    }
+
+    if (!oauthTokens) {
+      const authUrl = getOAuthClient().generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+          'https://www.googleapis.com/auth/drive',
+          'https://www.googleapis.com/auth/drive.metadata.readonly',
+          'https://www.googleapis.com/auth/drive.file',
+          'https://www.googleapis.com/auth/spreadsheets'
+        ],
+        include_granted_scopes: true,
+        prompt: 'consent'
+      });
+      
+      return NextResponse.json({ 
+        success: false, 
+        error: 'OAuth authentication required.',
+        authUrl: authUrl
+      }, { status: 401 });
+    }
+
+    const auth = getOAuthClient();
+    auth.setCredentials(oauthTokens);
+
+    // Identify which Google account is authorized
     let authorizedEmail = '';
-    let usingServiceAccount = false;
-
-    if (serviceAccountEmail && servicePrivateKeyRaw) {
-      try {
-        const privateKey = servicePrivateKeyRaw.replace(/\\n/g, '\n');
-        auth = new google.auth.JWT(
-          serviceAccountEmail,
-          undefined,
-          privateKey,
-          [
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/spreadsheets'
-          ]
-        );
-        await auth.authorize();
-        authorizedEmail = serviceAccountEmail;
-        usingServiceAccount = true;
-        console.log('✅ Using service account authentication');
-      } catch (e) {
-        console.error('💥 Service account auth failed:', e?.message);
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Google service account authentication failed. Verify GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY.' 
-        }, { status: 500 });
-      }
-    } else {
-      // Check if OAuth is configured
-      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
-        }, { status: 400 });
-      }
-
-      // Check if we have valid tokens (try load from disk first)
-      if (!oauthTokens) {
-        await loadTokensFromDisk();
-      }
-
-      if (!oauthTokens) {
-        const authUrl = getOAuthClient().generateAuthUrl({
-          access_type: 'offline',
-          scope: [
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/drive.metadata.readonly',
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/spreadsheets'
-          ],
-          include_granted_scopes: true,
-          prompt: 'consent'
-        });
-        
-        return NextResponse.json({ 
-          success: false, 
-          error: 'OAuth authentication required.',
-          authUrl: authUrl
-        }, { status: 401 });
-      }
-
-      auth = getOAuthClient();
-      auth.setCredentials(oauthTokens);
-
-      // Identify which Google account is authorized (OAuth only)
-      try {
-        const oauth2 = google.oauth2({ version: 'v2', auth });
-        const me = await oauth2.userinfo.get();
-        authorizedEmail = me?.data?.email || '';
-        console.log('👤 Authorized Google account:', authorizedEmail || 'unknown');
-      } catch ( e) {
-        console.warn('⚠️ Could not fetch authorized user info:', e?.message);
-      }
+    try {
+      const oauth2 = google.oauth2({ version: 'v2', auth });
+      const me = await oauth2.userinfo.get();
+      authorizedEmail = me?.data?.email || '';
+      console.log('👤 Authorized Google account:', authorizedEmail || 'unknown');
+    } catch ( e) {
+      console.warn('⚠️ Could not fetch authorized user info:', e?.message);
     }
 
     const formData = await req.formData();
@@ -216,8 +183,7 @@ export async function POST(req) {
     const targetFolderId = manualFolderId;
     console.log('📁 Using folder ID:', targetFolderId);
 
-    // Verify the folder exists and is accessible; if not, proceed without uploads
-    let driveAvailable = true;
+    // Verify the folder exists and is accessible (strict)
     try {
       console.log('🔍 Verifying folder access...');
       await drive.files.get({
@@ -227,8 +193,15 @@ export async function POST(req) {
       });
       console.log('✅ Folder is accessible');
     } catch (folderError) {
-      driveAvailable = false;
-      console.warn('⚠️ Drive folder not accessible, proceeding without file uploads:', folderError.message);
+      console.error('❌ Folder is not accessible:', folderError.message);
+      return NextResponse.json({ 
+        success: false, 
+        error: `The folder (${targetFolderId}) is not accessible. Please check:\n` +
+        `1. The folder exists in Google Drive (My Drive or Shared Drive)\n` +
+        `2. The authorized account ${authorizedEmail || (usingServiceAccount ? serviceAccountEmail : '(unknown)')} has at least Editor access\n` +
+        `3. The folder ID is correct\n` +
+        `4. If it is a Shared Drive, ensure membership and try again` 
+      }, { status: 400 });
     }
 
     // Upload function for files
@@ -290,30 +263,23 @@ export async function POST(req) {
       }
     }
 
-    // Upload all files in parallel (optional). If uploads fail, continue with empty links
+    // Upload all files in parallel (strict)
     console.log('🚀 Starting file uploads...');
     let aadharLink = '', panLink = '', salaryLink = '', bankLink = '';
-    if (driveAvailable) {
-      try {
-        [aadharLink, panLink, salaryLink, bankLink] = await Promise.all([
-          uploadToDrive(aadhar, 'Aadhar'),
-          uploadToDrive(pan, 'PAN'),
-          uploadToDrive(salarySlips, 'SalarySlips'),
-          uploadToDrive(bankStatement, 'BankStatement'),
-        ]);
-        console.log('✅ All files uploaded successfully');
-      } catch (uploadError) {
-        console.error('💥 File upload failed (continuing without file links):', uploadError);
-        aadharLink = aadharLink || '';
-        panLink = panLink || '';
-        salaryLink = salaryLink || '';
-        bankLink = bankLink || '';
-      }
-    } else {
-      aadharLink = '';
-      panLink = '';
-      salaryLink = '';
-      bankLink = '';
+    try {
+      [aadharLink, panLink, salaryLink, bankLink] = await Promise.all([
+        uploadToDrive(aadhar, 'Aadhar'),
+        uploadToDrive(pan, 'PAN'),
+        uploadToDrive(salarySlips, 'SalarySlips'),
+        uploadToDrive(bankStatement, 'BankStatement'),
+      ]);
+      console.log('✅ All files uploaded successfully');
+    } catch (uploadError) {
+      console.error('💥 File upload failed:', uploadError);
+      return NextResponse.json({ 
+        success: false, 
+        error: uploadError.message 
+      }, { status: 500 });
     }
 
     // Prepare data for Google Sheets
