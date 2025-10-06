@@ -4,6 +4,10 @@ import { Readable } from "stream";
 import fs from 'fs/promises';
 import path from 'path';
 
+// Ensure Node.js runtime (googleapis not supported on Edge runtime)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export const config = {
   api: {
     bodyParser: false,
