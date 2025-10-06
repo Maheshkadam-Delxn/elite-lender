@@ -35,8 +35,8 @@ export async function POST(request) {
       // Determine sheet name based on loanType
       const normalizedType = (loanType || '').toString().trim().toLowerCase();
       let sheetName = 'General';
-      if (normalizedType.includes('gold')) sheetName = 'Gold';
-      else if (normalizedType.includes('car') || normalizedType.includes('vehicle')) sheetName = 'Car Loan';
+      if (normalizedType.includes('gold')) sheetName = 'Gold Loan';
+      else if (normalizedType.includes('car') || normalizedType.includes('vehicle')) sheetName = 'Vehicle Loan';
       else if (normalizedType) sheetName = loanType; // use provided name for new/other cards
 
       const auth = new google.auth.JWT(clientEmail, undefined, privateKey, ['https://www.googleapis.com/auth/spreadsheets']);
@@ -98,7 +98,7 @@ export async function POST(request) {
       // Prepare row
       const now = new Date();
       const values = [[
-        now.toLocaleString('en-IN'),
+        now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
         name,
         email,
         mobile,
@@ -156,7 +156,12 @@ export async function POST(request) {
       companyName: companyName || '',
       address: address || '',
       loanType: loanType || '',
-      sheetName: loanType || 'General' // let the script route to specific sheet
+      sheetName: (() => {
+        const lt = (loanType || '').toString().toLowerCase();
+        if (lt.includes('gold')) return 'Gold Loan';
+        if (lt.includes('car') || lt.includes('vehicle')) return 'Vehicle Loan';
+        return loanType || 'General';
+      })() // let the script route to specific sheet
     };
 
     const resp = await fetch(webhookUrl, {
