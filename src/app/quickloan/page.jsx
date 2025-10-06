@@ -7,6 +7,7 @@ export default function QuickLoanPage() {
   const [submitStatus, setSubmitStatus] = useState(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const formRef = useRef(null)
+  const uploadSectionRef = useRef(null)
 
   const CACHE_KEY = 'quickloanFormCache'
   const OAUTH_DONE_KEY = 'quickloanOAuthDone'
@@ -89,9 +90,29 @@ export default function QuickLoanPage() {
           try { oauthPopupRef.current.close() } catch (_) {}
         }
         if (formRef.current && !autoSubmitRef.current) {
-          autoSubmitRef.current = true
-          // Trigger submit without resetting the form; files remain attached
-          formRef.current.requestSubmit()
+          const aadhar = formRef.current.elements.namedItem('aadhar')
+          const pan = formRef.current.elements.namedItem('pan')
+          const salarySlips = formRef.current.elements.namedItem('salarySlips')
+          const bankStatement = formRef.current.elements.namedItem('bankStatement')
+
+          const hasAllFiles =
+            aadhar && aadhar.files && aadhar.files.length > 0 &&
+            pan && pan.files && pan.files.length > 0 &&
+            salarySlips && salarySlips.files && salarySlips.files.length > 0 &&
+            bankStatement && bankStatement.files && bankStatement.files.length > 0
+
+          if (hasAllFiles) {
+            autoSubmitRef.current = true
+            formRef.current.requestSubmit()
+          } else {
+            setSubmitStatus({
+              type: 'error',
+              message: 'Google auth complete. Please attach all required documents to continue.'
+            })
+            if (uploadSectionRef.current) {
+              uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          }
         }
       }
     }
@@ -500,7 +521,7 @@ export default function QuickLoanPage() {
           </div>
 
           {/* Upload Documents */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+          <div ref={uploadSectionRef} className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Upload Documents</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex flex-col gap-1">
