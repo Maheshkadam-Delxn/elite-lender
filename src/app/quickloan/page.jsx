@@ -1,11 +1,74 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function QuickLoanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const formRef = useRef(null)
+
+  const CACHE_KEY = 'quickloanFormCache'
+
+  const saveFormToCache = (formData) => {
+    try {
+      const entries = {}
+      for (const [key, value] of formData.entries()) {
+        // Skip files
+        if (value instanceof File) continue
+        entries[key] = value
+      }
+      localStorage.setItem(CACHE_KEY, JSON.stringify(entries))
+    } catch (_) { /* ignore */ }
+  }
+
+  const restoreFormFromCache = () => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY)
+      if (!raw) return false
+      const data = JSON.parse(raw || '{}') || {}
+      const form = formRef.current
+      if (!form) return false
+      let restored = false
+      Object.keys(data).forEach((name) => {
+        const el = form.elements.namedItem(name)
+        if (!el) return
+        // Handle multiple elements with same name (e.g., radios)
+        if (el instanceof RadioNodeList) {
+          for (let i = 0; i < el.length; i++) {
+            if (el[i].value === data[name]) {
+              el[i].checked = true
+              restored = true
+              break
+            }
+          }
+          return
+        }
+        if (el && el.type !== 'file') {
+          el.value = data[name]
+          restored = true
+        }
+      })
+      if (restored) {
+        setSubmitStatus({
+          type: 'error',
+          message: 'Reopened after Google auth. Please reattach files and submit.'
+        })
+      }
+      return restored
+    } catch (_) {
+      return false
+    }
+  }
+
+  const clearCache = () => {
+    try { localStorage.removeItem(CACHE_KEY) } catch (_) {}
+  }
+
+  useEffect(() => {
+    // Try to restore cached values after returning from OAuth
+    restoreFormFromCache()
+  }, [])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -24,6 +87,8 @@ export default function QuickLoanPage() {
 
       // If OAuth is required, redirect user to Google's consent screen
       if (!response.ok && response.status === 401 && result?.authUrl) {
+        // Persist non-file fields before redirecting for OAuth
+        saveFormToCache(formData)
         window.location.href = result.authUrl
         return
       }
@@ -34,6 +99,7 @@ export default function QuickLoanPage() {
           message: 'Loan application submitted successfully!' 
         })
         event.target.reset()
+        clearCache()
         setShowSuccessModal(true)
       } else {
         setSubmitStatus({ 
@@ -70,7 +136,7 @@ export default function QuickLoanPage() {
           </div>
         )}
 
-        <form className="space-y-6" onSubmit={handleSubmit} encType="multipart/form-data">
+        <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} encType="multipart/form-data">
           {/* Personal Details */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Personal Details</h2>
