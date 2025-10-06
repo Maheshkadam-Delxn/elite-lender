@@ -9,6 +9,9 @@ export default function QuickLoanPage() {
   const formRef = useRef(null)
 
   const CACHE_KEY = 'quickloanFormCache'
+  const OAUTH_DONE_KEY = 'quickloanOAuthDone'
+  const oauthPopupRef = useRef(null)
+  const autoSubmitRef = useRef(false)
 
   const saveFormToCache = (formData) => {
     try {
@@ -68,6 +71,32 @@ export default function QuickLoanPage() {
   useEffect(() => {
     // Try to restore cached values after returning from OAuth
     restoreFormFromCache()
+
+    // If this window is the OAuth popup after redirect back to our origin, signal done and close
+    try {
+      if (typeof window !== 'undefined' && window.opener && window.name === 'oauthWindow') {
+        localStorage.setItem(OAUTH_DONE_KEY, String(Date.now()))
+        window.close()
+      }
+    } catch (_) {}
+
+    // Listen for OAuth completion in the opener window
+    const onStorage = (e) => {
+      if (e.key === OAUTH_DONE_KEY && e.newValue) {
+        // Clear the signal and auto-submit the form with existing data and files
+        try { localStorage.removeItem(OAUTH_DONE_KEY) } catch (_) {}
+        if (oauthPopupRef.current && !oauthPopupRef.current.closed) {
+          try { oauthPopupRef.current.close() } catch (_) {}
+        }
+        if (formRef.current && !autoSubmitRef.current) {
+          autoSubmitRef.current = true
+          // Trigger submit without resetting the form; files remain attached
+          formRef.current.requestSubmit()
+        }
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   const handleSubmit = async (event) => {
@@ -87,9 +116,32 @@ export default function QuickLoanPage() {
 
       // If OAuth is required, redirect user to Google's consent screen
       if (!response.ok && response.status === 401 && result?.authUrl) {
-        // Persist non-file fields before redirecting for OAuth
+        // Persist non-file fields just in case
         saveFormToCache(formData)
-        window.location.href = result.authUrl
+        // Open OAuth in a popup to preserve current page state and file inputs
+        const w = 500, h = 700
+        const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2)
+        const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2)
+        oauthPopupRef.current = window.open(
+          result.authUrl,
+          'oauthWindow',
+          `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`
+        )
+        // Fallback polling in case storage event is missed
+        const poll = setInterval(() => {
+          try {
+            if (oauthPopupRef.current && oauthPopupRef.current.closed) {
+              clearInterval(poll)
+              return
+            }
+            // When popup navigates back to our origin, we can detect and trigger storage signal
+            if (oauthPopupRef.current && oauthPopupRef.current.location && oauthPopupRef.current.location.origin === window.location.origin) {
+              localStorage.setItem(OAUTH_DONE_KEY, String(Date.now()))
+            }
+          } catch (_) {
+            // Ignore cross-origin access errors until it returns to our origin
+          }
+        }, 500)
         return
       }
 
@@ -100,6 +152,7 @@ export default function QuickLoanPage() {
         })
         event.target.reset()
         clearCache()
+        autoSubmitRef.current = false
         setShowSuccessModal(true)
       } else {
         setSubmitStatus({ 

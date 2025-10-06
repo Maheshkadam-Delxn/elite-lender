@@ -59,51 +59,84 @@ export async function POST(req) {
   try {
     console.log('🔍 Starting API request...');
 
-    // Check if OAuth is configured
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
-      }, { status: 400 });
-    }
+    // Prefer service account in production if credentials are available
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const servicePrivateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 
-    // Check if we have valid tokens (try load from disk first)
-    if (!oauthTokens) {
-      await loadTokensFromDisk();
-    }
-
-    if (!oauthTokens) {
-      const authUrl = getOAuthClient().generateAuthUrl({
-        access_type: 'offline',
-        scope: [
-          'https://www.googleapis.com/auth/drive',
-          'https://www.googleapis.com/auth/drive.metadata.readonly',
-          'https://www.googleapis.com/auth/drive.file',
-          'https://www.googleapis.com/auth/spreadsheets'
-        ],
-        include_granted_scopes: true,
-        prompt: 'consent'
-      });
-      
-      return NextResponse.json({ 
-        success: false, 
-        error: 'OAuth authentication required.',
-        authUrl: authUrl
-      }, { status: 401 });
-    }
-
-    const auth = getOAuthClient();
-    auth.setCredentials(oauthTokens);
-
-    // Identify which Google account is authorized
+    let auth;
     let authorizedEmail = '';
-    try {
-      const oauth2 = google.oauth2({ version: 'v2', auth });
-      const me = await oauth2.userinfo.get();
-      authorizedEmail = me?.data?.email || '';
-      console.log('👤 Authorized Google account:', authorizedEmail || 'unknown');
-    } catch (e) {
-      console.warn('⚠️ Could not fetch authorized user info:', e?.message);
+    let usingServiceAccount = false;
+
+    if (serviceAccountEmail && servicePrivateKeyRaw) {
+      try {
+        const privateKey = servicePrivateKeyRaw.replace(/\\n/g, '\n');
+        auth = new google.auth.JWT(
+          serviceAccountEmail,
+          undefined,
+          privateKey,
+          [
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/spreadsheets'
+          ]
+        );
+        await auth.authorize();
+        authorizedEmail = serviceAccountEmail;
+        usingServiceAccount = true;
+        console.log('✅ Using service account authentication');
+      } catch (e) {
+        console.error('💥 Service account auth failed:', e?.message);
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Google service account authentication failed. Verify GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY.' 
+        }, { status: 500 });
+      }
+    } else {
+      // Check if OAuth is configured
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
+        }, { status: 400 });
+      }
+
+      // Check if we have valid tokens (try load from disk first)
+      if (!oauthTokens) {
+        await loadTokensFromDisk();
+      }
+
+      if (!oauthTokens) {
+        const authUrl = getOAuthClient().generateAuthUrl({
+          access_type: 'offline',
+          scope: [
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/drive.metadata.readonly',
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/spreadsheets'
+          ],
+          include_granted_scopes: true,
+          prompt: 'consent'
+        });
+        
+        return NextResponse.json({ 
+          success: false, 
+          error: 'OAuth authentication required.',
+          authUrl: authUrl
+        }, { status: 401 });
+      }
+
+      auth = getOAuthClient();
+      auth.setCredentials(oauthTokens);
+
+      // Identify which Google account is authorized (OAuth only)
+      try {
+        const oauth2 = google.oauth2({ version: 'v2', auth });
+        const me = await oauth2.userinfo.get();
+        authorizedEmail = me?.data?.email || '';
+        console.log('👤 Authorized Google account:', authorizedEmail || 'unknown');
+      } catch ( e) {
+        console.warn('⚠️ Could not fetch authorized user info:', e?.message);
+      }
     }
 
     const formData = await req.formData();
@@ -194,7 +227,7 @@ export async function POST(req) {
         success: false, 
         error: `The folder (${targetFolderId}) is not accessible. Please check:\n` +
         `1. The folder exists in Google Drive (My Drive or Shared Drive)\n` +
-        `2. The authorized account ${authorizedEmail || '(unknown)'} has at least Editor access\n` +
+        `2. The authorized account ${authorizedEmail || (usingServiceAccount ? serviceAccountEmail : '(unknown)')} has at least Editor access\n` +
         `3. The folder ID is correct\n` +
         `4. If it is a Shared Drive, ensure membership and try again` 
       }, { status: 400 });
