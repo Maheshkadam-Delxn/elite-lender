@@ -8,6 +8,15 @@ export default function QuickLoanPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showUpload, setShowUpload] = useState(true)
   const [selectedFiles, setSelectedFiles] = useState({ aadhar: null, pan: null, salarySlips: null, bankStatement: null })
+  // Runtime input sanitizers
+  const handleDigitInput = (maxLen) => (e) => {
+    const digitsOnly = (e.target.value || '').replace(/\D/g, '').slice(0, maxLen)
+    e.target.value = digitsOnly
+  }
+  const handleNameInput = (e) => {
+    const lettersOnly = (e.target.value || '').replace(/[^A-Za-z\s]/g, '').replace(/\s{2,}/g, ' ')
+    e.target.value = lettersOnly
+  }
   const onFileChange = (key, fileList) => {
     try {
       const name = fileList && fileList.length > 0 ? fileList[0].name : null
@@ -168,6 +177,11 @@ export default function QuickLoanPage() {
           'oauthWindow',
           `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`
         )
+        // If popup blocked by browser, fall back to full-page redirect
+        if (!oauthPopupRef.current) {
+          window.location.href = result.authUrl
+          return
+        }
         // Fallback polling in case storage event is missed
         const poll = setInterval(() => {
           try {
@@ -242,6 +256,9 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter your full name" 
                   required
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -252,6 +269,9 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter father's full name" 
                   required
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -262,6 +282,9 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter mother's full name" 
                   required
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -285,6 +308,9 @@ export default function QuickLoanPage() {
                   name="spouseName" 
                   type="text" 
                   placeholder="Enter spouse name" 
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -295,7 +321,11 @@ export default function QuickLoanPage() {
                   type="tel" 
                   placeholder="Enter contact number" 
                   required
-                  pattern="[0-9]{10}"
+                  onInput={handleDigitInput(10)}
+                  pattern={"^\\d{10}$"}
+                  maxLength={10}
+                  inputMode="numeric"
+                  title="Enter exactly 10 digits"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -305,7 +335,11 @@ export default function QuickLoanPage() {
                   name="altContactNumber" 
                   type="tel" 
                   placeholder="Enter alternative number" 
-                  pattern="[0-9]{10}"
+                  onInput={handleDigitInput(10)}
+                  pattern={"^\\d{10}$"}
+                  maxLength={10}
+                  inputMode="numeric"
+                  title="Enter exactly 10 digits"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -336,6 +370,8 @@ export default function QuickLoanPage() {
                   type="email" 
                   placeholder="Enter personal email" 
                   required
+                  pattern={".*@.*"}
+                  title="Email must contain @"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -345,6 +381,8 @@ export default function QuickLoanPage() {
                   name="officialEmail" 
                   type="email" 
                   placeholder="Enter official email" 
+                  pattern={".*@.*"}
+                  title="Email must contain @"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -445,6 +483,9 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter reference name" 
                   required
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -455,7 +496,11 @@ export default function QuickLoanPage() {
                   type="tel" 
                   placeholder="Enter reference contact" 
                   required
-                  pattern="[0-9]{10}"
+                  onInput={handleDigitInput(10)}
+                  pattern={"^\\d{10}$"}
+                  maxLength={10}
+                  inputMode="numeric"
+                  title="Enter exactly 10 digits"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -476,6 +521,9 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter reference name" 
                   required
+                  onInput={handleNameInput}
+                  pattern={"[A-Za-z ]+"}
+                  title="Only letters and spaces are allowed"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -486,7 +534,11 @@ export default function QuickLoanPage() {
                   type="tel" 
                   placeholder="Enter reference contact" 
                   required
-                  pattern="[0-9]{10}"
+                  onInput={handleDigitInput(10)}
+                  pattern={"^\\d{10}$"}
+                  maxLength={10}
+                  inputMode="numeric"
+                  title="Enter exactly 10 digits"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
@@ -514,6 +566,11 @@ export default function QuickLoanPage() {
                   type="text" 
                   placeholder="Enter loan amount" 
                   required
+                  onInput={handleDigitInput(20)}
+                  pattern={"^\\d{1,20}$"}
+                  maxLength={20}
+                  inputMode="numeric"
+                  title="Enter digits only (max 20)"
                   className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 />
               </label>
