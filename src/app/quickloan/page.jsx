@@ -23,6 +23,39 @@ export default function QuickLoanPage() {
       setSelectedFiles((prev) => ({ ...prev, [key]: name }))
     } catch (_) {}
   }
+  // Network helpers for mobile robustness
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 60000) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      const resp = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' })
+      return resp
+    } finally {
+      clearTimeout(id)
+    }
+  }
+  const submitWithRetry = async (formData, maxRetries = 1) => {
+    let attempt = 0
+    let lastError = null
+    while (attempt <= maxRetries) {
+      try {
+        if (typeof navigator !== 'undefined' && navigator && navigator.onLine === false) {
+          throw new Error('You appear to be offline. Please check your internet connection.')
+        }
+        const response = await fetchWithTimeout('/api/quickloan/submit', { method: 'POST', body: formData }, 60000)
+        return response
+      } catch (err) {
+        lastError = err
+        const transient = err?.name === 'AbortError' || err instanceof TypeError
+        if (!transient || attempt === maxRetries) {
+          throw err
+        }
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+        attempt += 1
+      }
+    }
+    throw lastError
+  }
   const formRef = useRef(null)
   const uploadSectionRef = useRef(null)
 
@@ -118,7 +151,10 @@ export default function QuickLoanPage() {
       }
     }
     window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    const onOnline = () => setSubmitStatus((prev) => prev && prev.type === 'error' ? null : prev)
+    const onOffline = () => setSubmitStatus({ type: 'error', message: 'You are offline. Please reconnect to submit the form.' })
+    try { window.addEventListener('online', onOnline); window.addEventListener('offline', onOffline) } catch (_) {}
+    return () => { try { window.removeEventListener('storage', onStorage); window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline) } catch (_) {} }
   }, [])
 
   const handleSubmit = async (event) => {
@@ -127,6 +163,16 @@ export default function QuickLoanPage() {
     setSubmitStatus(null)
 
     const formData = new FormData(event.target)
+
+    // Pre-open a placeholder popup synchronously to keep user-gesture context on mobile
+    try {
+      const w = 500, h = 700
+      const y = (window?.top?.outerHeight || 0) / 2 + (window?.top?.screenY || 0) - (h / 2)
+      const x = (window?.top?.outerWidth || 0) / 2 + (window?.top?.screenX || 0) - (w / 2)
+      if (!oauthPopupRef.current || oauthPopupRef.current.closed) {
+        oauthPopupRef.current = window.open('', 'oauthWindow', `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`)
+      }
+    } catch (_) {}
 
     // After OAuth, require all files before allowing submission
     if (showUpload) {
@@ -157,27 +203,32 @@ export default function QuickLoanPage() {
     }
 
     try {
-      const response = await fetch('/api/quickloan/submit', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await submitWithRetry(formData, 1)
 
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (_) {
+        const text = await response.text().catch(() => '')
+        result = { success: response.ok, error: text || 'Unexpected server response' }
+      }
 
       // If OAuth is required, redirect user to Google's consent screen
       if (!response.ok && response.status === 401 && result?.authUrl) {
         // Persist non-file fields just in case
         saveFormToCache(formData)
-        // Open OAuth in a popup to preserve current page state and file inputs
-        const w = 500, h = 700
-        const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2)
-        const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2)
-        oauthPopupRef.current = window.open(
-          result.authUrl,
-          'oauthWindow',
-          `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`
-        )
-        // If popup blocked by browser, fall back to full-page redirect
+        // Navigate the pre-opened popup (or open if needed). If blocked, fall back to full-page redirect.
+        try {
+          if (oauthPopupRef.current && !oauthPopupRef.current.closed) {
+            oauthPopupRef.current.location.href = result.authUrl
+            try { oauthPopupRef.current.focus() } catch (_) {}
+          } else {
+            const w = 500, h = 700
+            const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2)
+            const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2)
+            oauthPopupRef.current = window.open(result.authUrl, 'oauthWindow', `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`)
+          }
+        } catch (_) {}
         if (!oauthPopupRef.current) {
           window.location.href = result.authUrl
           return
@@ -210,15 +261,19 @@ export default function QuickLoanPage() {
         autoSubmitRef.current = false
         setShowSuccessModal(true)
       } else {
+        const message = result?.error || result?.message || (!response.ok ? `Request failed (${response.status})` : 'Submission failed. Please try again.')
         setSubmitStatus({ 
           type: 'error', 
-          message: result.error || 'Submission failed. Please try again.' 
+          message
         })
       }
     } catch (error) {
+      const message = error?.message === 'Failed to fetch'
+        ? 'Network error. Please check your internet connection and try again.'
+        : (error?.name === 'AbortError' ? 'Request timed out. Please retry on a stable connection.' : (error?.message || 'Network error. Please try again.'))
       setSubmitStatus({ 
         type: 'error', 
-        message: 'Network error. Please check your connection and try again.' 
+        message
       })
     } finally {
       setIsSubmitting(false)
