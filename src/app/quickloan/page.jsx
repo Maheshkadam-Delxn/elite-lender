@@ -164,16 +164,6 @@ export default function QuickLoanPage() {
 
     const formData = new FormData(event.target)
 
-    // Pre-open a placeholder popup synchronously to keep user-gesture context on mobile
-    try {
-      const w = 500, h = 700
-      const y = (window?.top?.outerHeight || 0) / 2 + (window?.top?.screenY || 0) - (h / 2)
-      const x = (window?.top?.outerWidth || 0) / 2 + (window?.top?.screenX || 0) - (w / 2)
-      if (!oauthPopupRef.current || oauthPopupRef.current.closed) {
-        oauthPopupRef.current = window.open('', 'oauthWindow', `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`)
-      }
-    } catch (_) {}
-
     // After OAuth, require all files before allowing submission
     if (showUpload) {
       const form = formRef.current
@@ -217,18 +207,21 @@ export default function QuickLoanPage() {
       if (!response.ok && response.status === 401 && result?.authUrl) {
         // Persist non-file fields just in case
         saveFormToCache(formData)
-        // Navigate the pre-opened popup (or open if needed). If blocked, fall back to full-page redirect.
-        try {
-          if (oauthPopupRef.current && !oauthPopupRef.current.closed) {
-            oauthPopupRef.current.location.href = result.authUrl
-            try { oauthPopupRef.current.focus() } catch (_) {}
-          } else {
-            const w = 500, h = 700
-            const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2)
-            const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2)
-            oauthPopupRef.current = window.open(result.authUrl, 'oauthWindow', `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`)
-          }
-        } catch (_) {}
+        // Mobile-first: do full-page redirect on mobile; desktop tries popup then falls back to redirect
+        const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '')
+        if (isMobile) {
+          window.location.href = result.authUrl
+          return
+        }
+        // Desktop: try popup; if blocked, redirect
+        const w = 500, h = 700
+        const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2)
+        const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2)
+        oauthPopupRef.current = window.open(
+          result.authUrl,
+          'oauthWindow',
+          `popup=yes,width=${w},height=${h},top=${Math.max(0, y)},left=${Math.max(0, x)}`
+        )
         if (!oauthPopupRef.current) {
           window.location.href = result.authUrl
           return
