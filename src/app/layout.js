@@ -36,6 +36,7 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
+        <meta name="google-site-verification" content="P8ABy2jnjU73CVUye04wQZtXlGGZtl1A1lYwVVFcfTQ" />
       </head>
       <body
         className={`${geistSans.className} bg-gradient-to-r from-[#CEFCFF] via-[#D5F5F9] to-[#FFFFFF]`}
