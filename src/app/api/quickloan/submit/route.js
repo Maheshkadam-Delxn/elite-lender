@@ -15,7 +15,7 @@ export const config = {
   }
 };
 
-// Token storage: persisted to disk to avoid repeated OAuth prompts
+// Token storage (dev-only OAuth fallback)
 let oauthTokens = null;
 const TOKEN_PATH = process.env.GOOGLE_OAUTH_TOKEN_PATH || path.join(process.cwd(), 'google-oauth-token.json');
 
@@ -31,9 +31,7 @@ async function loadTokensFromDisk() {
       } catch (_) {}
       return parsed;
     }
-  } catch (_) {
-    // ignore if not found or invalid
-  }
+  } catch (_) {}
   return null;
 }
 
@@ -43,14 +41,10 @@ async function saveTokensToDisk(tokens) {
     try { await fs.mkdir(dir, { recursive: true }); } catch (_) {}
     await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens, null, 2), 'utf8');
   } catch (e) {
-    console.warn('⚠️ Failed to persist OAuth tokens:', e?.message);
+    console.warn('Failed to persist OAuth tokens:', e?.message);
   }
 }
 
-// Eagerly attempt to load tokens at module init
-loadTokensFromDisk().catch(() => {});
-
-// Initialize OAuth2 client
 function getOAuthClient() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -63,51 +57,63 @@ export async function POST(req) {
   try {
     console.log('🔍 Starting API request...');
 
-    // Use OAuth (previous behavior)
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
-      }, { status: 400 });
-    }
+    // Prefer Service Account in production
+    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+    const manualFolderId = process.env.MANUAL_GOOGLE_DRIVE_FOLDER_ID;
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 
-    // Load tokens (from disk) if not already in memory
-    if (!oauthTokens) {
-      await loadTokensFromDisk();
-    }
-
-    if (!oauthTokens) {
-      const authUrl = getOAuthClient().generateAuthUrl({
-        access_type: 'offline',
-        scope: [
+    let auth;
+    let authorizedEmail = '';
+    let usingServiceAccount = false;
+    if (serviceAccountEmail && privateKeyRaw) {
+      usingServiceAccount = true;
+      const credentials = {
+        client_email: serviceAccountEmail,
+        private_key: privateKeyRaw.replace(/\\n/g, '\n')
+      };
+      auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: [
           'https://www.googleapis.com/auth/drive',
-          'https://www.googleapis.com/auth/drive.metadata.readonly',
           'https://www.googleapis.com/auth/drive.file',
           'https://www.googleapis.com/auth/spreadsheets'
-        ],
-        include_granted_scopes: true,
-        prompt: 'consent'
+        ]
       });
-      
-      return NextResponse.json({ 
-        success: false, 
-        error: 'OAuth authentication required.',
-        authUrl: authUrl
-      }, { status: 401 });
-    }
-
-    const auth = getOAuthClient();
-    auth.setCredentials(oauthTokens);
-
-    // Identify which Google account is authorized
-    let authorizedEmail = '';
-    try {
-      const oauth2 = google.oauth2({ version: 'v2', auth });
-      const me = await oauth2.userinfo.get();
-      authorizedEmail = me?.data?.email || '';
-      console.log('👤 Authorized Google account:', authorizedEmail || 'unknown');
-    } catch ( e) {
-      console.warn('⚠️ Could not fetch authorized user info:', e?.message);
+      authorizedEmail = serviceAccountEmail;
+    } else {
+      // Fallback to OAuth (mainly for local dev)
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return NextResponse.json({
+          success: false,
+          error: 'Google credentials not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY, or provide OAuth envs.'
+        }, { status: 500 });
+      }
+      if (!oauthTokens) {
+        await loadTokensFromDisk();
+      }
+      if (!oauthTokens) {
+        const authUrl = getOAuthClient().generateAuthUrl({
+          access_type: 'offline',
+          scope: [
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/drive.metadata.readonly',
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/spreadsheets'
+          ],
+          include_granted_scopes: true,
+          prompt: 'consent'
+        });
+        return NextResponse.json({ success: false, error: 'OAuth authentication required.', authUrl }, { status: 401 });
+      }
+      const oauthClient = getOAuthClient();
+      oauthClient.setCredentials(oauthTokens);
+      auth = oauthClient;
+      try {
+        const oauth2 = google.oauth2({ version: 'v2', auth });
+        const me = await oauth2.userinfo.get();
+        authorizedEmail = me?.data?.email || '';
+      } catch (_) {}
     }
 
     const formData = await req.formData();
@@ -154,14 +160,10 @@ export async function POST(req) {
 
     console.log('📁 Files received - Aadhar:', !!aadhar, 'PAN:', !!pan, 'Salary:', !!salarySlips, 'Bank:', !!bankStatement);
 
-    // Google configuration from environment variables
-    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-    const manualFolderId = process.env.MANUAL_GOOGLE_DRIVE_FOLDER_ID;
-
     console.log('🔧 Environment variables check:');
     console.log('   Spreadsheet ID:', spreadsheetId ? '✅ Present' : '❌ Missing');
     console.log('   Manual Folder ID:', manualFolderId ? '✅ Present' : '❌ Missing');
-    console.log('   OAuth Client ID:', process.env.GOOGLE_CLIENT_ID ? '✅ Present' : '❌ Missing');
+    console.log('   Using Service Account:', usingServiceAccount ? '✅ Yes' : '❌ No');
 
     if (!spreadsheetId || !manualFolderId) {
       const missing = [];
@@ -178,7 +180,7 @@ export async function POST(req) {
     const drive = google.drive({ version: "v3", auth });
     const sheets = google.sheets({ version: "v4", auth });
 
-    console.log('✅ Google API clients initialized with OAuth');
+    console.log(`✅ Google API clients initialized with ${usingServiceAccount ? 'Service Account' : 'OAuth'}`);
 
     const targetFolderId = manualFolderId;
     console.log('📁 Using folder ID:', targetFolderId);
@@ -198,7 +200,7 @@ export async function POST(req) {
         success: false, 
         error: `The folder (${targetFolderId}) is not accessible. Please check:\n` +
         `1. The folder exists in Google Drive (My Drive or Shared Drive)\n` +
-        `2. The authorized account ${authorizedEmail || (usingServiceAccount ? serviceAccountEmail : '(unknown)')} has at least Editor access\n` +
+        `2. Share the folder with ${authorizedEmail || (usingServiceAccount ? serviceAccountEmail : '(unknown)')} as Editor\n` +
         `3. The folder ID is correct\n` +
         `4. If it is a Shared Drive, ensure membership and try again` 
       }, { status: 400 });
@@ -462,10 +464,9 @@ export async function POST(req) {
       let message = `Google Sheets error: ${sheetsError.message}`;
       // Provide clearer guidance for permission issues
       if (sheetsError?.code === 403 || /The caller does not have permission/i.test(sheetsError?.message || '')) {
-        message = `Unable to access spreadsheet. Please:
-1) Verify GOOGLE_SHEETS_SPREADSHEET_ID is correct
-2) Share the spreadsheet with ${authorizedEmail || 'the authorized Google account'} as Editor
-3) Ensure you completed OAuth with the same account (${authorizedEmail || 'unknown'})`;
+        message = `Unable to access spreadsheet. Please:\n`+
+`1) Verify GOOGLE_SHEETS_SPREADSHEET_ID is correct\n`+
+`2) Share the spreadsheet with ${authorizedEmail || 'the authorized Google account'} as Editor`;
       }
       return NextResponse.json({ 
         success: false, 
@@ -491,8 +492,8 @@ export async function POST(req) {
     console.error("💥 General error:", error);
     
     let errorMessage = error.message;
-    if (error.code === 401) {
-      // Only clear tokens if we don't have a refresh token to auto-refresh
+    if (error.code === 401 && oauthTokens) {
+      // Only applies to OAuth fallback
       if (!oauthTokens?.refresh_token) {
         oauthTokens = null;
         await saveTokensToDisk({});
@@ -515,6 +516,11 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
     
+    // Short-circuit if service account is configured: OAuth not needed
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+      return NextResponse.json({ success: true, message: 'Service account active; OAuth not required.' });
+    }
+
     if (code) {
       console.log('🔐 Processing OAuth callback with code...');
       

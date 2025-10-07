@@ -1,6 +1,7 @@
 |-- .env.local
 |-- .gitignore
 |-- .htaccess
+|-- DEPLOYMENT_GUIDE.md
 |-- DYNAMIC_SETUP.md
 |-- google-oauth-token.json
 |-- GOOGLE_SHEETS_SETUP.md
