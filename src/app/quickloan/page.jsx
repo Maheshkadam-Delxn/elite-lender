@@ -17,9 +17,21 @@ export default function QuickLoanPage() {
     const lettersOnly = (e.target.value || '').replace(/[^A-Za-z\s]/g, '').replace(/\s{2,}/g, ' ')
     e.target.value = lettersOnly
   }
+  const MAX_PER_FILE_BYTES = 3 * 1024 * 1024 // 3 MB per file
+  const MAX_TOTAL_BYTES = 12 * 1024 * 1024 // 12 MB total across all files
   const onFileChange = (key, fileList) => {
     try {
-      const name = fileList && fileList.length > 0 ? fileList[0].name : null
+      const file = fileList && fileList.length > 0 ? fileList[0] : null
+      if (file && file.size > MAX_PER_FILE_BYTES) {
+        setSubmitStatus({ type: 'error', message: `File too large: ${file.name}. Max ${Math.floor(MAX_PER_FILE_BYTES/1024/1024)} MB per file.` })
+        // Reset the input value
+        const form = formRef.current
+        const input = form?.elements?.namedItem(key)
+        if (input) input.value = ''
+        setSelectedFiles((prev) => ({ ...prev, [key]: null }))
+        return
+      }
+      const name = file ? file.name : null
       setSelectedFiles((prev) => ({ ...prev, [key]: name }))
     } catch (_) {}
   }
@@ -164,7 +176,7 @@ export default function QuickLoanPage() {
 
     const formData = new FormData(event.target)
 
-    // After OAuth, require all files before allowing submission
+    // After OAuth, require all files before allowing submission + validate size limits
     if (showUpload) {
       const form = formRef.current
       const aadhar = form?.elements?.namedItem('aadhar')
@@ -188,6 +200,23 @@ export default function QuickLoanPage() {
         if (uploadSectionRef.current) {
           uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
+        return
+      }
+
+      // Size validations: per file and total
+      const files = [aadhar.files[0], pan.files[0], salarySlips.files[0], bankStatement.files[0]]
+      const tooLarge = files.find(f => f && f.size > MAX_PER_FILE_BYTES)
+      const totalSize = files.reduce((sum, f) => sum + (f?.size || 0), 0)
+      if (tooLarge) {
+        setIsSubmitting(false)
+        setSubmitStatus({ type: 'error', message: `File too large: ${tooLarge.name}. Max ${Math.floor(MAX_PER_FILE_BYTES/1024/1024)} MB per file.` })
+        if (uploadSectionRef.current) uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+      if (totalSize > MAX_TOTAL_BYTES) {
+        setIsSubmitting(false)
+        setSubmitStatus({ type: 'error', message: `Total upload too large (${(totalSize/1024/1024).toFixed(1)} MB). Max ${(MAX_TOTAL_BYTES/1024/1024)} MB total.` })
+        if (uploadSectionRef.current) uploadSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
         return
       }
     }
