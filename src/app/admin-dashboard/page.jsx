@@ -37,7 +37,7 @@ const AdminDashboard = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Navigation items for sidebar
   const navigationItems = [
@@ -161,6 +161,23 @@ const AdminDashboard = () => {
       setShowLogin(false);
       fetchData();
     }
+  }, []);
+
+  // Handle responsive sidebar behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Refetch data when deletedDefaults changes
@@ -654,131 +671,168 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col lg:flex-row">
       <Toaster />
       
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white/90 backdrop-blur-lg shadow-xl transition-all duration-300 ease-in-out border-r border-white/20 flex flex-col`}>
+      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white/90 backdrop-blur-lg shadow-xl transition-all duration-300 ease-in-out border-r border-white/20 flex flex-col fixed lg:relative z-50 lg:z-auto h-full lg:h-auto transform lg:transform-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-gray-200/50">
+        <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200/50">
           <div className="flex items-center justify-between">
             {sidebarOpen && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <FaUserTie className="text-white text-lg" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FaUserTie className="text-white text-sm sm:text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <h2 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Admin
                   </h2>
                   <p className="text-xs text-gray-500">Dashboard</p>
                 </div>
               </div>
             )}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              {sidebarOpen ? <FaClose className="text-gray-600" /> : <FaBars className="text-gray-600" />}
-            </button>
+            <div className="flex items-center gap-2">
+              {sidebarOpen && (
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Close sidebar"
+                >
+                  <FaClose className="text-gray-600 text-sm" />
+                </button>
+              )}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+              >
+                {sidebarOpen ? <FaClose className="text-gray-600 text-sm sm:text-base hidden lg:block" /> : <FaBars className="text-gray-600 text-sm sm:text-base" />}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-2 sm:p-3 lg:p-4 space-y-1 sm:space-y-2">
           {navigationItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
+              onClick={() => {
+                setActiveTab(item.id);
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
+              className={`w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl transition-all duration-200 group ${
                 activeTab === item.id
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
                   : 'text-gray-600 hover:bg-gray-100/50 hover:text-gray-800'
               }`}
             >
-              <div className={`${activeTab === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'}`}>
+              <div className={`${activeTab === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'} text-sm sm:text-base`}>
                 {item.icon}
               </div>
               {sidebarOpen && (
                 <div className="flex-1 text-left">
-                  <div className="font-semibold">{item.name}</div>
-                  <div className={`text-xs ${activeTab === item.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                  <div className="font-semibold text-xs sm:text-sm lg:text-base">{item.name}</div>
+                  <div className={`text-xs ${activeTab === item.id ? 'text-blue-100' : 'text-gray-400'} hidden sm:block`}>
                     {item.description}
                   </div>
                 </div>
               )}
               {sidebarOpen && activeTab === item.id && (
-                <FaChevronRight className="text-sm" />
+                <FaChevronRight className="text-xs sm:text-sm" />
               )}
             </button>
           ))}
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-200/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-              <FaUser className="text-white text-sm" />
+        <div className="p-2 sm:p-3 lg:p-4 border-t border-gray-200/50">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <FaUser className="text-white text-xs sm:text-sm" />
             </div>
             {sidebarOpen && (
               <div>
-                <p className="text-sm font-semibold text-gray-800">{admin?.username}</p>
+                <p className="text-xs sm:text-sm font-semibold text-gray-800">{admin?.username}</p>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
             )}
           </div>
           <button
             onClick={handleLogout}
-            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <FaSignOutAlt className="text-sm" />
-            {sidebarOpen && 'Logout'}
+            <FaSignOutAlt className="text-xs sm:text-sm" />
+            {sidebarOpen && <span className="hidden sm:inline">Logout</span>}
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full lg:ml-0">
         {/* Top Header */}
         <div className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-white/20">
-          <div className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {navigationItems.find(item => item.id === activeTab)?.name}
-              </h1>
-              <div className="w-1 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-              <p className="text-gray-600 font-medium">
-                {navigationItems.find(item => item.id === activeTab)?.description}
-              </p>
+          <div className="flex items-center justify-between p-3 sm:p-4 lg:p-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Toggle sidebar"
+              >
+                <FaBars className="text-gray-600" />
+              </button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {navigationItems.find(item => item.id === activeTab)?.name}
+                </h1>
+                <div className="hidden sm:flex items-center gap-4">
+                  <div className="w-1 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                  <p className="text-gray-600 font-medium text-sm lg:text-base">
+                    {navigationItems.find(item => item.id === activeTab)?.description}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-800">Welcome back</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs sm:text-sm font-semibold text-gray-800">Welcome back</p>
                 <p className="text-xs text-gray-500">{admin?.username}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <FaUserTie className="text-white text-lg" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                <FaUserTie className="text-white text-sm sm:text-lg" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto admin-scrollbar">
+        <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto admin-scrollbar">
           {/* Content based on active tab */}
           <div className="max-w-6xl mx-auto">
             
             {/* Action Buttons */}
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                   {activeTab === 'banner' ? 'Banner Management' : 
                    activeTab === 'loan-types' ? 'Loan Types Management' : 
                    'Statistics Management'}
                 </h2>
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 {activeTab === 'loan-types' && (
                   <>
                     <button
@@ -806,10 +860,11 @@ const AdminDashboard = () => {
                         });
                         setShowForm(true);
                       }}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+                      className="bg-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl text-xs sm:text-sm"
                     >
-                      <FaPlus />
-                      Add Sample Data
+                      <FaPlus className="text-xs sm:text-sm" />
+                      <span className="hidden xs:inline">Add Sample Data</span>
+                      <span className="xs:hidden">Sample</span>
                     </button>
                     {loanTypes.length > 0 && (
                       <button
@@ -842,10 +897,11 @@ const AdminDashboard = () => {
                             }
                           }
                         }}
-                        className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+                        className="bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl hover:bg-red-700 transition-colors flex items-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl text-xs sm:text-sm"
                       >
-                        <FaTrash />
-                        Delete All
+                        <FaTrash className="text-xs sm:text-sm" />
+                        <span className="hidden xs:inline">Delete All</span>
+                        <span className="xs:hidden">Delete</span>
                       </button>
                     )}
                     {deletedDefaults.size > 0 && (
@@ -857,10 +913,11 @@ const AdminDashboard = () => {
                           // Trigger home page update immediately
                           triggerHomePageUpdate();
                         }}
-                        className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+                        className="bg-green-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl text-xs sm:text-sm"
                       >
-                        <FaPlus />
-                        Restore Defaults
+                        <FaPlus className="text-xs sm:text-sm" />
+                        <span className="hidden xs:inline">Restore Defaults</span>
+                        <span className="xs:hidden">Restore</span>
                       </button>
                     )}
                   </>
@@ -873,10 +930,11 @@ const AdminDashboard = () => {
                       setEditingItem(null);
                       resetForms();
                     }}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-1 sm:gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-xs sm:text-sm"
                   >
-                    <FaPlus />
-                    Add New
+                    <FaPlus className="text-xs sm:text-sm" />
+                    <span className="hidden xs:inline">Add New</span>
+                    <span className="xs:hidden">Add</span>
                   </button>
                 )}
               </div>
@@ -960,7 +1018,7 @@ const AdminDashboard = () => {
             )}
 
                          {activeTab === 'loan-types' && (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                  {loanTypes.length === 0 ? (
                    <div className="col-span-full text-center py-8 text-gray-500">
                      <p>No loan types added yet.</p>
@@ -968,9 +1026,9 @@ const AdminDashboard = () => {
                    </div>
                  ) : (
                    loanTypes.map((loan, index) => (
-                     <div key={loan._id || `${loan.title}-${loan.icon}`} className="border rounded-lg p-4 relative hover:shadow-md transition-shadow">
+                     <div key={loan._id || `${loan.title}-${loan.icon}`} className="border rounded-lg p-3 sm:p-4 relative hover:shadow-md transition-shadow">
                        <div className="flex justify-between items-start mb-2">
-                         <h3 className="font-semibold">{loan.title}</h3>
+                         <h3 className="font-semibold text-sm sm:text-base">{loan.title}</h3>
                          <div className="flex gap-1">
                            <button
                              onClick={() => {
@@ -1021,7 +1079,7 @@ const AdminDashboard = () => {
                              className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
                              title={defaultStringIds.includes(loan._id) ? "Create editable copy" : "Edit"}
                            >
-                             <FaEdit />
+                             <FaEdit className="text-xs sm:text-sm" />
                            </button>
                            <button
                              onClick={async () => {
@@ -1071,13 +1129,13 @@ const AdminDashboard = () => {
                              className="p-1 text-red-600 hover:text-red-800 transition-colors"
                              title={defaultStringIds.includes(loan._id) ? "Remove default item" : "Delete"}
                            >
-                             <FaTrash />
+                             <FaTrash className="text-xs sm:text-sm" />
                            </button>
                          </div>
                        </div>
-                       <p className="text-gray-600">{loan.description}</p>
-                       <p className="text-sm text-gray-500">Icon: {loan.icon}</p>
-                       <p className="text-sm text-gray-500">Order: {loan.order}</p>
+                       <p className="text-gray-600 text-xs sm:text-sm">{loan.description}</p>
+                       <p className="text-xs sm:text-sm text-gray-500">Icon: {loan.icon}</p>
+                       <p className="text-xs sm:text-sm text-gray-500">Order: {loan.order}</p>
                        {defaultStringIds.includes(loan._id) && (
                          <div className="absolute bottom-2 right-2">
                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Default</span>
@@ -1090,14 +1148,14 @@ const AdminDashboard = () => {
              )}
 
             {activeTab === 'stats' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {stats.map((stat) => (
-                  <div key={stat._id || `${stat.label}-${stat.value}`} className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <div key={stat._id || `${stat.label}-${stat.value}`} className="border rounded-lg p-3 sm:p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-gray-800">{stat.value}</h3>
-                        <p className="text-gray-600">{stat.label}</p>
-                        <p className="text-sm text-gray-500 mt-1">Icon: {stat.icon}</p>
+                        <h3 className="font-semibold text-base sm:text-lg text-gray-800">{stat.value}</h3>
+                        <p className="text-gray-600 text-sm sm:text-base">{stat.label}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Icon: {stat.icon}</p>
                         <p className="text-xs text-gray-400 mt-1">Order: {stat.order || 0}</p>
                       </div>
                       <div className="flex gap-1">
@@ -1113,10 +1171,10 @@ const AdminDashboard = () => {
                             });
                             setShowForm(true);
                           }}
-                          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 text-sm"
+                          className="bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 text-xs sm:text-sm"
                         >
                           <FaEdit className="text-xs" />
-                          Edit
+                          <span className="hidden xs:inline">Edit</span>
                         </button>
                       </div>
                     </div>
@@ -1130,10 +1188,10 @@ const AdminDashboard = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-                             <h2 className="text-xl font-semibold">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 lg:p-6 w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+                             <h2 className="text-lg sm:text-xl font-semibold">
                  {activeTab === 'banner' ? (editingItem ? 'Edit Banner' : 'Add New Banner') : 
                   activeTab === 'loan-types' ? (editingItem ? 'Edit Loan Type' : 'Add New Loan Type') : 
                   activeTab === 'stats' ? (editingItem ? 'Edit Statistic' : 'Add New Statistic') : 
@@ -1145,7 +1203,8 @@ const AdminDashboard = () => {
                   setEditingItem(null);
                   resetForms();
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Close form"
               >
                 <FaTimes />
               </button>
