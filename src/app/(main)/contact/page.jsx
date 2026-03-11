@@ -14,6 +14,7 @@ import {
   FaInstagram
 } from "react-icons/fa";
 import { toast, Toaster } from "react-hot-toast";
+import { FaXTwitter } from "react-icons/fa6";
 
 const Contact = () => {
   const { ref: heroRef, inView: heroInView } = useInView({ triggerOnce: true });
@@ -79,16 +80,16 @@ const Contact = () => {
     {
       icon: <FaPhone className="text-2xl" />,
       title: "Phone",
-      value: "+91 8308588867",
-      link: "tel:+918308588867",
+      value: "+91 8767527817",
+      link: "tel:+918767527817",
       color: "text-blue-600",
       bgColor: "bg-blue-50"
     },
     {
       icon: <FaEnvelope className="text-2xl" />,
       title: "Email",
-      value: "el@elitefinsoles.com",
-      link: "mailto:el@elitefinsoles.com",
+      value: "elitefinsols@gmail.com",
+      link: "mailto:elitefinsols@gmail.com",
       color: "text-green-600",
       bgColor: "bg-green-50"
     },
@@ -103,7 +104,7 @@ const Contact = () => {
     {
       icon: <FaClock className="text-2xl" />,
       title: "Business Hours",
-      value: "Mon - Fri: 9:00 AM - 6:00 PM",
+      value: "10 am to 7pm",
       link: "#",
       color: "text-orange-600",
       bgColor: "bg-orange-50"
@@ -114,14 +115,14 @@ const Contact = () => {
     {
       icon: <FaWhatsapp className="text-xl" />,
       name: "WhatsApp",
-      link: "https://wa.me/918308588867",
+      link: "https://wa.me/918767527817",
       color: "text-green-600",
       bgColor: "bg-green-50 hover:bg-green-100"
     },
     {
-      icon: <FaLinkedin className="text-xl" />,
-      name: "LinkedIn",
-      link: "#",
+      icon: <FaXTwitter className="text-xl" />,
+      name: "X (Twitter)",
+      link: "https://x.com/EliteFinSols",
       color: "text-blue-600",
       bgColor: "bg-blue-50 hover:bg-blue-100"
     },
@@ -135,7 +136,7 @@ const Contact = () => {
     {
       icon: <FaInstagram className="text-xl" />,
       name: "Instagram",
-      link: "#",
+      link: "https://www.instagram.com/elite_financial_solutions_pune?igsh=MTg5bTJhZGVkNzc4ag==",
       color: "text-pink-600",
       bgColor: "bg-pink-50 hover:bg-pink-100"
     }
@@ -410,11 +411,11 @@ const Contact = () => {
                   Call us directly for urgent inquiries or immediate support.
                 </p>
                 <a
-                  href="tel:+918308588867"
+                  href="tel:+918767527817"
                   className="inline-flex items-center justify-center px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   <FaPhone className="mr-2" />
-                  Call Now: +91 8308588867
+                  Call Now: +91 8767527817
                 </a>
               </motion.div>
             </div>

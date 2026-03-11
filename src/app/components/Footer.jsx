@@ -38,17 +38,14 @@ export default function Footer() {
               <a href="https://www.facebook.com/share/r/1AdzMc8BCZ/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FaFacebook size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://x.com/EliteFinSols" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FaXTwitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.instagram.com/elite_financial_solutions_pune?igsh=MTg5bTJhZGVkNzc4ag==" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FaInstagram size={20} />
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <FaYoutube size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <FaLinkedinIn size={20} />
               </a>
             </div>
           </div>
@@ -88,7 +85,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>+91 8308588867</span>
+                <span>+91 8767527817</span>
               </li>
               <li className="flex items-center">
                 <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
@@ -96,11 +93,11 @@ export default function Footer() {
               </li>              
               <li className="flex items-center">
                 <FaRegEnvelope size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>elite@finsoles.com</span>
+                <span>elitefinsols@gmail.com</span>
               </li>
               <li className="flex items-center">
                 <FaRegClock size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>Mon - Fri: 9:00 AM - 6:00 PM</span>
+                <span>10 am to 7pm</span>
               </li>
             </ul>
           </div>

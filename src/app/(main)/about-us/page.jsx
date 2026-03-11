@@ -282,7 +282,7 @@ const AboutUs = () => {
                   <FaArrowRight className="ml-2" />
                 </Link>
                 <Link
-                  href="tel:8308588867"
+                  href="tel:8767527817"
                   className="inline-flex items-center justify-center px-6 py-3 bg-transparent border-2 border-white text-white rounded-xl font-semibold text-base hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
                 >
                   Call Us Now

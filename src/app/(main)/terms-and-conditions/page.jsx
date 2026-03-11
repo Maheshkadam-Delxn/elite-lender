@@ -183,8 +183,8 @@ const page = () => {
             
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">Contact Details</h3>
-              <p className="text-gray-600 text-sm">Email: legal@elitefinsoles.com<br/>
-              Phone: +91 8308588867</p>
+              <p className="text-gray-600 text-sm">Email: elitefinsols@gmail.com<br/>
+              Phone: +91 8767527817</p>
             </div>
           </div>
         </div>
