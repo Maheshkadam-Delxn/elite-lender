@@ -216,8 +216,8 @@ const Page = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">Elite Finsols</h3>
-              <p className="text-gray-600 text-sm">3rd Floor, Plot No.264/265, Vaswani Chamber,<br/>
-              Dr.Annie Besant Road, Worli Colony, Mumbai-400018</p>
+              <p className="text-gray-600 text-sm">Office No.303, Third Floor, Audumber Nivya,<br/>
+              Narhe, Pune - 411041</p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">Contact Details</h3>
