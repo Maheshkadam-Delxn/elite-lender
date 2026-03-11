@@ -114,7 +114,7 @@ const Contact = () => {
     {
       icon: <FaWhatsapp className="text-xl" />,
       name: "WhatsApp",
-      link: "https://wa.me/919561113316",
+      link: "https://wa.me/8308588867",
       color: "text-green-600",
       bgColor: "bg-green-50 hover:bg-green-100"
     },

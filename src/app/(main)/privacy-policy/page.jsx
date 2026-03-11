@@ -222,7 +222,7 @@ const Page = () => {
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">Contact Details</h3>
               <p className="text-gray-600 text-sm">Email: privacy@elitefinsoles.com<br/>
-              Phone: +91 9561113316</p>
+              Phone: +91 8308588867</p>
             </div>
           </div>
         </div>

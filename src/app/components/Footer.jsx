@@ -35,7 +35,7 @@ export default function Footer() {
               Empowering individuals and businesses with flexible loan solutions.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.facebook.com/share/r/1AdzMc8BCZ/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <FaFacebook size={20} />
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
