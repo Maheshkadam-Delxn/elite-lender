@@ -80,8 +80,8 @@ const Contact = () => {
     {
       icon: <FaPhone className="text-2xl" />,
       title: "Phone",
-      value: "+91 8767527817",
-      link: "tel:+918767527817",
+      value: "+91 8485012275",
+      link: "tel:+918485012275",
       color: "text-blue-600",
       bgColor: "bg-blue-50"
     },
@@ -115,7 +115,7 @@ const Contact = () => {
     {
       icon: <FaWhatsapp className="text-xl" />,
       name: "WhatsApp",
-      link: "https://wa.me/918767527817",
+      link: "https://wa.me/918485012275",
       color: "text-green-600",
       bgColor: "bg-green-50 hover:bg-green-100"
     },
@@ -411,11 +411,11 @@ const Contact = () => {
                   Call us directly for urgent inquiries or immediate support.
                 </p>
                 <a
-                  href="tel:+918767527817"
+                  href="tel:+918485012275"
                   className="inline-flex items-center justify-center px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   <FaPhone className="mr-2" />
-                  Call Now: +91 8767527817
+                  Call Now: +91 8485012275
                 </a>
               </motion.div>
             </div>

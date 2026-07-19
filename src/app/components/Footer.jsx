@@ -85,12 +85,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>+91 8767527817</span>
+                <span>+91 8485012275</span>
               </li>
-              <li className="flex items-center">
-                <FaPhone size={20} className="mr-2 flex-shrink-0 text-blue-400" />
-                <span>+91 8669012275</span>
-              </li>              
               <li className="flex items-center">
                 <FaRegEnvelope size={20} className="mr-2 flex-shrink-0 text-blue-400" />
                 <span>elitefinsols@gmail.com</span>

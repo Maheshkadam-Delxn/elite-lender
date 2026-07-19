@@ -11,6 +11,16 @@ const AboutUs = () => {
   const { ref: statsRef, inView: statsInView } = useInView({ triggerOnce: true });
   const { ref: storyRef, inView: storyInView } = useInView({ triggerOnce: true });
   const { ref: featuresRef, inView: featuresInView } = useInView({ triggerOnce: true });
+  const { ref: teamRef, inView: teamInView } = useInView({ triggerOnce: true });
+
+  const team = [
+    {
+      name: "Gaurav Khond",
+      role: "Chief Executive Officer (CEO)",
+      photo: "/owner.jpg",
+      bio: "Gaurav founded Elite Financial Solutions with a vision to make expert financial guidance accessible to individuals and businesses across Pune. As CEO, he leads the company's strategy and client relationships, drawing on his experience as a finance advisor, business coach, and public speaker to help clients turn their financial goals into reality."
+    }
+  ];
 
   const stats = [
     { icon: <FaUsers className="text-3xl lg:text-4xl" />, value: "500+", label: "Happy Clients", color: "text-blue-600", bgColor: "bg-blue-50" },
@@ -95,7 +105,7 @@ const AboutUs = () => {
                 <FaArrowRight className="ml-2" />
               </Link>
               <Link
-                href="tel:8767527817"
+                href="tel:8485012275"
                 className="inline-flex items-center justify-center px-6 py-3 bg-transparent border-2 border-white text-white rounded-xl font-semibold text-base hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
               >
                 Call Us Now
@@ -208,6 +218,58 @@ const AboutUs = () => {
         </div>
       </motion.div>
 
+      {/* Our Team Section */}
+      <motion.div
+        ref={teamRef}
+        initial={{ opacity: 0, y: 50 }}
+        animate={teamInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8 }}
+        className="py-12 lg:py-20 px-4 sm:px-6 lg:px-8"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 lg:mb-12">
+            <h2 className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4">
+              Meet Our Team
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+              The people behind Elite Financial Solutions
+            </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto"></div>
+          </div>
+
+          <div className="flex flex-col gap-6 lg:gap-8">
+            {team.map((member, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={teamInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 hover:shadow-2xl transition-all duration-500 border border-gray-100 grid sm:grid-cols-[auto,1fr] gap-6 lg:gap-10 items-center"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative w-32 h-32 lg:w-40 lg:h-40 mb-4 rounded-full overflow-hidden ring-4 ring-blue-100 shadow-lg">
+                    <Image
+                      src={member.photo}
+                      alt={member.name}
+                      fill
+                      className="object-cover"
+                      sizes="160px"
+                    />
+                  </div>
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-800 mb-1">
+                    {member.name}
+                  </h3>
+                  <p className="text-blue-600 font-semibold">{member.role}</p>
+                </div>
+                <p className="text-gray-600 text-sm lg:text-base leading-relaxed text-center sm:text-left">
+                  {member.bio}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
       {/* Why Choose Us Section */}
       <motion.div
         ref={featuresRef}
@@ -282,7 +344,7 @@ const AboutUs = () => {
                   <FaArrowRight className="ml-2" />
                 </Link>
                 <Link
-                  href="tel:8767527817"
+                  href="tel:8485012275"
                   className="inline-flex items-center justify-center px-6 py-3 bg-transparent border-2 border-white text-white rounded-xl font-semibold text-base hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
                 >
                   Call Us Now
