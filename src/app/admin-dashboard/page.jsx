@@ -20,7 +20,8 @@ import {
   FaUser,
   FaLock,
   FaUserTie,
-  FaShieldAlt
+  FaShieldAlt,
+  FaClipboardList
 } from 'react-icons/fa';
 import { toast, Toaster } from 'react-hot-toast';
 
@@ -58,7 +59,24 @@ const AdminDashboard = () => {
       name: 'Statistics',
       icon: <FaChartBar className="text-lg" />,
       description: 'Manage site statistics'
+    },
+    {
+      id: 'enquiries',
+      name: 'Enquiries',
+      icon: <FaClipboardList className="text-lg" />,
+      description: 'View & track loan enquiries'
     }
+  ];
+
+  const ENQUIRY_STATUSES = [
+    'No Call/Contact Made',
+    'Call Connected',
+    'Interested',
+    'Not Interested',
+    'Meeting Scheduled',
+    'Not Reachable',
+    'Converted',
+    'Rejected'
   ];
 
   // Form states
@@ -99,6 +117,17 @@ const AdminDashboard = () => {
   const [bannerData, setBannerData] = useState(null);
   const [loanTypes, setLoanTypes] = useState([]);
   const [stats, setStats] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
+  const [enquiriesLoading, setEnquiriesLoading] = useState(false);
+  const [enquiryFilters, setEnquiryFilters] = useState({
+    source: '',
+    status: '',
+    loanType: '',
+    search: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+  const [enquiryLoanTypes, setEnquiryLoanTypes] = useState([]);
   const [deletedDefaults, setDeletedDefaults] = useState(() => {
     // Load deletedDefaults from localStorage on component mount
     if (typeof window !== 'undefined') {
@@ -226,6 +255,75 @@ const AdminDashboard = () => {
       toast.error('Error fetching data');
     }
   };
+
+  const fetchEnquiries = async (filters = enquiryFilters) => {
+    setEnquiriesLoading(true);
+    try {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+      });
+      const res = await fetch(`/api/enquiries?${params.toString()}`, { cache: 'no-store' });
+      const result = await res.json();
+      if (result.success) {
+        setEnquiries(result.data);
+      } else {
+        toast.error(result.error || 'Error fetching enquiries');
+      }
+    } catch (error) {
+      console.error('Error fetching enquiries:', error);
+      toast.error('Error fetching enquiries');
+    } finally {
+      setEnquiriesLoading(false);
+    }
+  };
+
+  const fetchEnquiryLoanTypes = async () => {
+    try {
+      const res = await fetch('/api/enquiries/loan-types', { cache: 'no-store' });
+      const result = await res.json();
+      if (result.success) {
+        setEnquiryLoanTypes(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching enquiry loan types:', error);
+    }
+  };
+
+  const applyQuickFilter = (quick) => {
+    // quick: { loanType?: string, source?: string } or {} for "All"
+    const next = { ...enquiryFilters, loanType: '', source: '', ...quick };
+    setEnquiryFilters(next);
+    fetchEnquiries(next);
+  };
+
+  const updateEnquiryStatus = async (id, status) => {
+    try {
+      const res = await fetch(`/api/enquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setEnquiries(prev => prev.map(e => e._id === id ? result.data : e));
+        toast.success('Status updated');
+      } else {
+        toast.error(result.error || 'Error updating status');
+      }
+    } catch (error) {
+      console.error('Error updating enquiry status:', error);
+      toast.error('Error updating status');
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && activeTab === 'enquiries') {
+      fetchEnquiries();
+      fetchEnquiryLoanTypes();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, activeTab]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -826,8 +924,9 @@ const AdminDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
               <div className="flex items-center gap-2 sm:gap-4">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  {activeTab === 'banner' ? 'Banner Management' : 
-                   activeTab === 'loan-types' ? 'Loan Types Management' : 
+                  {activeTab === 'banner' ? 'Banner Management' :
+                   activeTab === 'loan-types' ? 'Loan Types Management' :
+                   activeTab === 'enquiries' ? 'Enquiries' :
                    'Statistics Management'}
                 </h2>
               </div>
@@ -1180,6 +1279,187 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {activeTab === 'enquiries' && (
+              <div className="space-y-4">
+                {/* Quick loan-type tabs, like the old per-loan-type sheet tabs */}
+                <div className="flex flex-wrap gap-2 border-b pb-3">
+                  <button
+                    onClick={() => applyQuickFilter({})}
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                      !enquiryFilters.loanType && !enquiryFilters.source
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {enquiryLoanTypes.map((lt) => (
+                    <button
+                      key={lt}
+                      onClick={() => applyQuickFilter({ loanType: lt })}
+                      className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                        enquiryFilters.loanType === lt
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {lt}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => applyQuickFilter({ source: 'contact' })}
+                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                      enquiryFilters.source === 'contact'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Contact Us
+                  </button>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white border rounded-lg p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">Source</label>
+                    <select
+                      value={enquiryFilters.source}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, source: e.target.value })}
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    >
+                      <option value="">All</option>
+                      <option value="loan-inquiry">Loan Inquiry</option>
+                      <option value="quick-loan">Quick Loan</option>
+                      <option value="contact">Contact Us</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">Status</label>
+                    <select
+                      value={enquiryFilters.status}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, status: e.target.value })}
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    >
+                      <option value="">All</option>
+                      {ENQUIRY_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">Loan Type</label>
+                    <input
+                      type="text"
+                      value={enquiryFilters.loanType}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, loanType: e.target.value })}
+                      placeholder="e.g. Gold Loan"
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">From Date</label>
+                    <input
+                      type="date"
+                      value={enquiryFilters.dateFrom}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, dateFrom: e.target.value })}
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">To Date</label>
+                    <input
+                      type="date"
+                      value={enquiryFilters.dateTo}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, dateTo: e.target.value })}
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">Search</label>
+                    <input
+                      type="text"
+                      value={enquiryFilters.search}
+                      onChange={(e) => setEnquiryFilters({ ...enquiryFilters, search: e.target.value })}
+                      placeholder="Name, email, mobile"
+                      className="border rounded-lg px-2 py-1.5 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div className="col-span-2 sm:col-span-3 lg:col-span-6 flex gap-2 justify-end">
+                    <button
+                      onClick={() => {
+                        const reset = { source: '', status: '', loanType: '', search: '', dateFrom: '', dateTo: '' };
+                        setEnquiryFilters(reset);
+                        fetchEnquiries(reset);
+                      }}
+                      className="px-3 py-1.5 rounded-lg border text-xs sm:text-sm text-gray-600 hover:bg-gray-50"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => fetchEnquiries(enquiryFilters)}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-purple-700"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className="bg-white border rounded-lg overflow-x-auto">
+                  <table className="min-w-full text-xs sm:text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 text-left text-gray-500">
+                        <th className="px-3 py-2 whitespace-nowrap">Date</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Name</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Contact</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Email</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Loan Type</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Source</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Amount</th>
+                        <th className="px-3 py-2 whitespace-nowrap">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {enquiriesLoading && (
+                        <tr><td colSpan={8} className="px-3 py-6 text-center text-gray-400">Loading...</td></tr>
+                      )}
+                      {!enquiriesLoading && enquiries.length === 0 && (
+                        <tr><td colSpan={8} className="px-3 py-6 text-center text-gray-400">No enquiries found</td></tr>
+                      )}
+                      {!enquiriesLoading && enquiries.map((enquiry) => (
+                        <tr key={enquiry._id} className="hover:bg-gray-50">
+                          <td className="px-3 py-2 whitespace-nowrap text-gray-600">
+                            {new Date(enquiry.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-800">{enquiry.name || '-'}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-gray-600">{enquiry.mobile || enquiry.phone || '-'}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-gray-600">{enquiry.email || enquiry.personalEmail || '-'}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-gray-600">{enquiry.loanType || (enquiry.source === 'contact' ? enquiry.subject : '-')}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded-full text-xs ${
+                              enquiry.source === 'quick-loan' ? 'bg-purple-100 text-purple-700' :
+                              enquiry.source === 'contact' ? 'bg-gray-100 text-gray-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {enquiry.source === 'loan-inquiry' ? 'Loan Inquiry' : enquiry.source === 'quick-loan' ? 'Quick Loan' : 'Contact Us'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-gray-600">{enquiry.loanAmount || '-'}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <select
+                              value={enquiry.status}
+                              onChange={(e) => updateEnquiryStatus(enquiry._id, e.target.value)}
+                              className="border rounded-lg px-2 py-1 text-xs"
+                            >
+                              {ENQUIRY_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
-import { addContactToSheet } from '../../../lib/google-sheets.js';
+import connectDB from '../../../lib/mongodb';
+import Enquiry from '../../../models/Enquiry';
 
-// Add CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -18,13 +18,12 @@ export async function POST(req) {
   try {
     const { name, email, message, phone, company, subject } = await req.json();
 
-    // Validate required fields
     if (!name || !email || !message || !subject) {
-      return new Response(JSON.stringify({ 
-        success: false, 
+      return new Response(JSON.stringify({
+        success: false,
         error: 'Missing required fields',
         message: 'Please fill in all required fields'
-      }), { 
+      }), {
         status: 400,
         headers: {
           ...corsHeaders,
@@ -33,35 +32,22 @@ export async function POST(req) {
       });
     }
 
-    // Store contact data in Google Sheets
-    const sheetResult = await addContactToSheet({
+    await connectDB();
+
+    await Enquiry.create({
+      source: 'contact',
       name,
       email,
-      phone,
-      company,
+      phone: phone || '',
+      company: company || '',
       subject,
       message
     });
 
-    if (!sheetResult.success) {
-      console.error('Google Sheets error:', sheetResult.error);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: sheetResult.error,
-        message: 'Failed to store contact data'
-      }), { 
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
-    }
-
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true,
-      message: 'Contact form submitted successfully and stored in Google Sheets'
-    }), { 
+      message: 'Contact form submitted successfully'
+    }), {
       status: 200,
       headers: {
         ...corsHeaders,
@@ -71,11 +57,11 @@ export async function POST(req) {
 
   } catch (error) {
     console.error('Contact form error:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
+    return new Response(JSON.stringify({
+      success: false,
       error: error.message,
       message: 'Failed to submit contact form'
-    }), { 
+    }), {
       status: 500,
       headers: {
         ...corsHeaders,

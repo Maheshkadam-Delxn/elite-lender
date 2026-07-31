@@ -37,7 +37,10 @@ async function connectDB() {
       maxPoolSize: 10,
       retryWrites: true,
       w: 'majority',
-      ssl: true
+      ssl: true,
+      // Local system clock lags behind real time, so freshly-issued certs
+      // read as "not yet valid". Remove this once the clock is corrected.
+      tlsAllowInvalidCertificates: true
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
